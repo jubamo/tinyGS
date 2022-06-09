@@ -77,6 +77,10 @@ void Radio::init()
   if (board.L_SX127X)
   {
     lora = new SX1278(new Module(board.L_NSS, board.L_DI00, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+     
+    // set pins for rx/tx on E32-xxxM30S
+    ((SX1278 *)lora)->setRfSwitchPins(33,32);  
+  
   }
   else
   {
