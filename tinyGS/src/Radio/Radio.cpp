@@ -66,6 +66,8 @@ void Radio::init()
     board.L_MOSI = doc["lMOSI"];
     board.L_SCK = doc["lSCK"];
     board.L_TCXO_V = doc["lTCXOV"];
+    board.RX_EN = doc["RXEN"];
+    board.TX_EN = doc["TXEN"];
   }
   else
   {
@@ -77,16 +79,20 @@ void Radio::init()
   if (board.L_SX127X)
   {
     lora = new SX1278(new Module(board.L_NSS, board.L_DI00, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-     
-    // set pins for rx/tx on E32-xxxM30S
-    ((SX1278 *)lora)->setRfSwitchPins(33,32);  
-  
   }
   else
   {
     lora = new SX1268(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
   }
 
+  if (board.RX_EN == 0) board.RX_EN = UNUSED; //@MODDED
+  if (board.TX_EN == 0) board.TX_EN = UNUSED; 
+  if (!((board.RX_EN == UNUSED) && (board.TX_EN == UNUSED))) 
+  { 
+    // set pins for rx/tx on E32-xxxM30S
+    ((SX1278 *)lora) ->setRfSwitchPins(board.RX_EN, board.TX_EN); 
+    Log::console(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"),board.RX_EN, board.TX_EN );
+  }
   begin();
 }
 

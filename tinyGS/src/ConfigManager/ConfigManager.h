@@ -107,8 +107,13 @@ typedef struct
   uint8_t L_MOSI;
   uint8_t L_SCK;
   float L_TCXO_V;
+  uint8_t RX_EN; 
+  uint8_t TX_EN;
   String BOARD;
 } board_type;
+
+
+const uint8_t UNUSED = -1;
 
 typedef struct
 {
