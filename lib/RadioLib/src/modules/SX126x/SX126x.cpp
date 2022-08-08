@@ -18,11 +18,11 @@ int16_t SX126x::begin(uint8_t cr, uint8_t syncWord, uint16_t preambleLength, flo
 
   // BW in kHz and SF are required in order to calculate LDRO for setModulationParams
   // set the defaults, this will get overwritten later anyway
-  _bwKhz = 125.0;
+  _bwKhz = 500.0;
   _sf = 9;
 
   // initialize configuration variables (will be overwritten during public settings configuration)
-  _bw = RADIOLIB_SX126X_LORA_BW_125_0;
+  _bw = RADIOLIB_SX126X_LORA_BW_500_0;  // initialized to 500 kHz, since lower valeus will interfere with LLCC68
   _cr = RADIOLIB_SX126X_LORA_CR_4_7;
   _ldro = 0x00;
   _crcType = RADIOLIB_SX126X_LORA_CRC_ON;
@@ -441,7 +441,7 @@ int16_t SX126x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
 }
 
 int16_t SX126x::startReceive(uint32_t timeout) {
-  int16_t state = startReceiveCommon();
+  int16_t state = startReceiveCommon(timeout);
   RADIOLIB_ASSERT(state);
 
   // set RF switch (if present)
@@ -520,9 +520,13 @@ int16_t SX126x::startReceiveDutyCycleAuto(uint16_t senderPreambleLength, uint16_
   return(startReceiveDutyCycle(wakePeriod, sleepPeriod));
 }
 
-int16_t SX126x::startReceiveCommon() {
+int16_t SX126x::startReceiveCommon(uint32_t timeout) {
   // set DIO mapping
-  int16_t state = setDioIrqParams(RADIOLIB_SX126X_IRQ_RX_DONE | RADIOLIB_SX126X_IRQ_TIMEOUT | RADIOLIB_SX126X_IRQ_CRC_ERR | RADIOLIB_SX126X_IRQ_HEADER_ERR, RADIOLIB_SX126X_IRQ_RX_DONE);
+  uint16_t mask = RADIOLIB_SX126X_IRQ_RX_DONE;
+  if(timeout != RADIOLIB_SX126X_RX_TIMEOUT_INF) {
+    mask |= RADIOLIB_SX126X_IRQ_TIMEOUT;
+  }
+  int16_t state = setDioIrqParams(RADIOLIB_SX126X_IRQ_RX_DONE | RADIOLIB_SX126X_IRQ_TIMEOUT | RADIOLIB_SX126X_IRQ_CRC_ERR | RADIOLIB_SX126X_IRQ_HEADER_ERR, mask);
   RADIOLIB_ASSERT(state);
 
   // set buffer pointers
@@ -1424,7 +1428,8 @@ int16_t SX126x::setModulationParams(uint8_t sf, uint8_t bw, uint8_t cr, uint8_t 
   } else {
     _ldro = ldro;
   }
-
+  // 500/9/8  - 0x09 0x04 0x03 0x00 - SF9, BW125, 4/8
+  // 500/11/8 - 0x0B 0x04 0x03 0x00 - SF11 BW125, 4/7
   uint8_t data[4] = {sf, bw, cr, _ldro};
   return(SPIwriteCommand(RADIOLIB_SX126X_CMD_SET_MODULATION_PARAMS, data, 4));
 }
@@ -1533,17 +1538,17 @@ int16_t SX126x::fixImplicitTimeout() {
 
   // stop RTC counter
   uint8_t rtcStop = 0x00;
-  int16_t state = writeRegister(RADIOLIB_SX126X_REG_RTC_STOP, &rtcStop, 1);
+  int16_t state = writeRegister(RADIOLIB_SX126X_REG_DIO3_OUT_VOLTAGE_CTRL, &rtcStop, 1);
   RADIOLIB_ASSERT(state);
 
   // read currently active event
   uint8_t rtcEvent = 0;
-  state = readRegister(RADIOLIB_SX126X_REG_RTC_EVENT, &rtcEvent, 1);
+  state = readRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1);
   RADIOLIB_ASSERT(state);
 
   // clear events
   rtcEvent |= 0x02;
-  return(writeRegister(RADIOLIB_SX126X_REG_RTC_EVENT, &rtcEvent, 1));
+  return(writeRegister(RADIOLIB_SX126X_REG_EVENT_MASK, &rtcEvent, 1));
 }
 
 int16_t SX126x::fixInvertedIQ(uint8_t iqConfig) {
@@ -1556,7 +1561,7 @@ int16_t SX126x::fixInvertedIQ(uint8_t iqConfig) {
   RADIOLIB_ASSERT(state);
 
   // set correct IQ configuration
-  if(iqConfig == RADIOLIB_SX126X_LORA_IQ_STANDARD) {
+  if(iqConfig == RADIOLIB_SX126X_LORA_IQ_INVERTED) {
     iqConfigCurrent &= 0xFB;
   } else {
     iqConfigCurrent |= 0x04;

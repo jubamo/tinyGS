@@ -96,17 +96,12 @@ int16_t SX127x::beginFSK(uint8_t chipVersion, float br, float freqDev, float rxB
   state = SX127x::setAFCBandwidth(rxBw);
   RADIOLIB_ASSERT(state);
 
-  // set AFC&AGC trigger to RSSI (in OOK) or both (in FSK)
-  if(enableOOK) {
-    state = SX127x::setAFCAGCTrigger(RADIOLIB_SX127X_RX_TRIGGER_RSSI_INTERRUPT);
-  } else {
-    state = SX127x::setAFCAGCTrigger(RADIOLIB_SX127X_RX_TRIGGER_BOTH);
-  }
-
+  // set AFC&AGC trigger to RSSI (both in OOK and FSK)
+  state = SX127x::setAFCAGCTrigger(RADIOLIB_SX127X_RX_TRIGGER_RSSI_INTERRUPT);
   RADIOLIB_ASSERT(state);
 
   // enable AFC
-  state = SX127x::setAFC(true);
+  state = SX127x::setAFC(false);
   RADIOLIB_ASSERT(state);
 
   // set receiver bandwidth
@@ -152,17 +147,8 @@ int16_t SX127x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   int16_t modem = getActiveModem();
   uint32_t start = 0;
   if(modem == RADIOLIB_SX127X_LORA) {
-    // calculate timeout (150 % of expected time-one-air)
-    float symbolLength = (float)(uint32_t(1) <<_sf) / (float)_bw;
-    float de = 0;
-    if(symbolLength >= 16.0) {
-      de = 1;
-    }
-    float ih = (float)_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_1, 0, 0);
-    float crc = (float)(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, 2, 2) >> 2);
-    float n_pre = (float)((_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_MSB) << 8) | _mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_LSB));
-    float n_pay = 8.0 + max(ceil((8.0 * (float)len - 4.0 * (float)_sf + 28.0 + 16.0 * crc - 20.0 * ih)/(4.0 * (float)_sf - 8.0 * de)) * (float)_cr, 0.0);
-    uint32_t timeout = ceil(symbolLength * (n_pre + n_pay + 4.25) * 1500.0);
+    // calculate timeout (150 % of expected time-on-air)
+    uint32_t timeout = getTimeOnAir(len) * 1.5;
 
     // start transmission
     state = startTransmit(data, len, addr);
@@ -180,7 +166,7 @@ int16_t SX127x::transmit(uint8_t* data, size_t len, uint8_t addr) {
 
   } else if(modem == RADIOLIB_SX127X_FSK_OOK) {
     // calculate timeout (5ms + 500 % of expected time-on-air)
-    uint32_t timeout = 5000000 + (uint32_t)((((float)(len * 8)) / (_br * 1000.0)) * 5000000.0);
+    uint32_t timeout = 5000 + getTimeOnAir(len) * 5;
 
     // start transmission
     state = startTransmit(data, len, addr);
@@ -232,8 +218,8 @@ int16_t SX127x::receive(uint8_t* data, size_t len) {
     }
 
   } else if(modem == RADIOLIB_SX127X_FSK_OOK) {
-    // calculate timeout (500 % of expected time-one-air)
-    uint32_t timeout = (uint32_t)((((float)(len * 8)) / (_br * 1000.0)) * 5000000.0);
+    // calculate timeout (500 % of expected time-on-air)
+    uint32_t timeout = getTimeOnAir(len) * 5;
 
     // set mode to receive
     state = startReceive(len, RADIOLIB_SX127X_RX);
@@ -376,10 +362,10 @@ int16_t SX127x::startReceive(uint8_t len, uint8_t mode) {
   if(modem == RADIOLIB_SX127X_LORA) {
     // set DIO pin mapping
     if(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_PERIOD) > RADIOLIB_SX127X_HOP_PERIOD_OFF) {
-      state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_RX_DONE | RADIOLIB_SX127X_DIO1_FHSS_CHANGE_CHANNEL, 7, 4);
+      state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_LORA_RX_DONE | RADIOLIB_SX127X_DIO1_LORA_FHSS_CHANGE_CHANNEL, 7, 4);
     }
     else {
-      state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_RX_DONE | RADIOLIB_SX127X_DIO1_RX_TIMEOUT, 7, 4);
+      state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_LORA_RX_DONE | RADIOLIB_SX127X_DIO1_LORA_RX_TIMEOUT, 7, 4);
     }
 
     // set expected packet length for SF6
@@ -408,6 +394,8 @@ int16_t SX127x::startReceive(uint8_t len, uint8_t mode) {
 
     // FSK modem does not distinguish between Rx single and continuous
     if(mode == RADIOLIB_SX127X_RXCONTINUOUS) {
+      // set RF switch (if present)
+      _mod->setRfSwitchState(HIGH, LOW);
       return(setMode(RADIOLIB_SX127X_RX));
     }
   }
@@ -441,6 +429,87 @@ void SX127x::clearDio1Action() {
   _mod->detachInterrupt(RADIOLIB_DIGITAL_PIN_TO_INTERRUPT(_mod->getGpio()));
 }
 
+void SX127x::setFifoEmptyAction(void (*func)(void)) {
+  // set DIO1 to the FIFO empty event (the register setting is done in startTransmit)
+  setDio1Action(func);
+}
+
+void SX127x::clearFifoEmptyAction() {
+  clearDio1Action();
+}
+
+void SX127x::setFifoFullAction(void (*func)(void)) {
+  // set the interrupt
+  _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_FIFO_THRESH, RADIOLIB_SX127X_FIFO_THRESH, 5, 0);
+  _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO1_PACK_FIFO_LEVEL, 5, 4);
+
+  // set DIO1 to the FIFO full event
+  setDio1Action(func);
+}
+
+void SX127x::clearFifoFullAction() {
+  clearDio1Action();
+  _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, 0x00, 5, 4);
+}
+
+bool SX127x::fifoAdd(uint8_t* data, int totalLen, volatile int* remLen) {
+  // subtract first (this may be the first time we get to modify the remaining length)
+  *remLen -= RADIOLIB_SX127X_FIFO_THRESH - 1;
+
+  // check if there is still something left to send
+  if(*remLen <= 0) {
+    // we're done
+    return(true);
+  }
+
+  // calculate the number of bytes we can copy
+  int len = *remLen;
+  if(len > RADIOLIB_SX127X_FIFO_THRESH - 1) {
+    len = RADIOLIB_SX127X_FIFO_THRESH - 1;
+  }
+
+  // clear interrupt flags
+  clearIRQFlags();
+
+  // copy the bytes to the FIFO
+  _mod->SPIwriteRegisterBurst(RADIOLIB_SX127X_REG_FIFO, &data[totalLen - *remLen], len);
+
+  // this is a hack, but it seems Rx FIFO level is getting triggered 1 byte before it should
+  // we just add a padding byte that we can drop without consequence
+  _mod->SPIwriteRegister(RADIOLIB_SX127X_REG_FIFO, '/');
+
+  // we're not done yet
+  return(false);
+}
+
+bool SX127x::fifoGet(volatile uint8_t* data, int totalLen, volatile int* rcvLen) {
+  // get pointer to the correct position in data buffer
+  uint8_t* dataPtr = (uint8_t*)&data[*rcvLen];
+
+  // check how much data are we still expecting
+  uint8_t len = RADIOLIB_SX127X_FIFO_THRESH - 1;
+  if(totalLen - *rcvLen < len) {
+    // we're nearly at the end
+    len = totalLen - *rcvLen;
+  }
+
+  // get the data
+  _mod->SPIreadRegisterBurst(RADIOLIB_SX127X_REG_FIFO, len, dataPtr);
+  (*rcvLen) += (len);
+
+  // dump the padding byte
+  _mod->SPIreadRegister(RADIOLIB_SX127X_REG_FIFO);
+
+  // clear flags
+  clearIRQFlags();
+
+  // check if we're done
+  if(*rcvLen >= totalLen) {
+    return(true);
+  }
+  return(false);
+}
+
 int16_t SX127x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
   // set mode to standby
   int16_t state = setMode(RADIOLIB_SX127X_STANDBY);
@@ -454,10 +523,9 @@ int16_t SX127x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
 
     // set DIO mapping
     if(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_PERIOD) > RADIOLIB_SX127X_HOP_PERIOD_OFF) {
-      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_TX_DONE | RADIOLIB_SX127X_DIO1_FHSS_CHANGE_CHANNEL, 7, 4);
-    }
-    else {
-      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_TX_DONE, 7, 6);
+      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_LORA_TX_DONE | RADIOLIB_SX127X_DIO1_LORA_FHSS_CHANGE_CHANNEL, 7, 4);
+    } else {
+      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_LORA_TX_DONE, 7, 6);
     }
 
     // apply fixes to errata
@@ -474,16 +542,15 @@ int16_t SX127x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_FIFO_ADDR_PTR, RADIOLIB_SX127X_FIFO_TX_BASE_ADDR_MAX);
 
   } else if(modem == RADIOLIB_SX127X_FSK_OOK) {
-    // check packet length
-    if(len >= RADIOLIB_SX127X_MAX_PACKET_LENGTH_FSK) {
-      return(RADIOLIB_ERR_PACKET_TOO_LONG);
-    }
-
-    // set DIO mapping
-    _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_PACK_PACKET_SENT, 7, 6);
-
     // clear interrupt flags
     clearIRQFlags();
+
+    // set DIO mapping
+    if(len > RADIOLIB_SX127X_MAX_PACKET_LENGTH_FSK) {
+      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO1_PACK_FIFO_EMPTY, 5, 4);
+    } else {
+      _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_PACK_PACKET_SENT, 7, 6);
+    }
 
     // set packet length
     if (_packetLengthConfig == RADIOLIB_SX127X_PACKET_VARIABLE) {
@@ -498,7 +565,18 @@ int16_t SX127x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
   }
 
   // write packet to FIFO
-  _mod->SPIwriteRegisterBurst(RADIOLIB_SX127X_REG_FIFO, data, len);
+  size_t packetLen = len;
+  if((modem == RADIOLIB_SX127X_FSK_OOK) && (len > RADIOLIB_SX127X_MAX_PACKET_LENGTH_FSK)) {
+    packetLen = RADIOLIB_SX127X_FIFO_THRESH - 1;
+    _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_FIFO_THRESH, RADIOLIB_SX127X_TX_START_FIFO_NOT_EMPTY, 7, 7);
+  }
+  _mod->SPIwriteRegisterBurst(RADIOLIB_SX127X_REG_FIFO, data, packetLen);
+
+  // this is a hack, but it seems than in Stream mode, Rx FIFO level is getting triggered 1 byte before it should
+  // just add a padding byte that can be dropped without consequence
+  if((modem == RADIOLIB_SX127X_FSK_OOK) && (len > RADIOLIB_SX127X_MAX_PACKET_LENGTH_FSK)) {
+    _mod->SPIwriteRegister(RADIOLIB_SX127X_REG_FIFO, '/');
+  }
 
   // set RF switch (if present)
   _mod->setRfSwitchState(LOW, HIGH);
@@ -577,7 +655,7 @@ int16_t SX127x::startChannelScan() {
   RADIOLIB_ASSERT(state);
 
   // set DIO pin mapping
-  state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_CAD_DONE | RADIOLIB_SX127X_DIO1_CAD_DETECTED, 7, 4);
+  state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, RADIOLIB_SX127X_DIO0_LORA_CAD_DONE | RADIOLIB_SX127X_DIO1_LORA_CAD_DETECTED, 7, 4);
   RADIOLIB_ASSERT(state);
 
   // clear interrupt flags
@@ -749,7 +827,7 @@ int16_t SX127x::setBitRate(float br) {
 
   // check allowed bit rate
   if(_ook) {
-    RADIOLIB_CHECK_RANGE(br, 1.2, 32.768, RADIOLIB_ERR_INVALID_BIT_RATE);
+    RADIOLIB_CHECK_RANGE(br, 1.2, 32.768002, RADIOLIB_ERR_INVALID_BIT_RATE);      // Found that 32.768 is 32.768002
   } else {
     RADIOLIB_CHECK_RANGE(br, 1.2, 300.0, RADIOLIB_ERR_INVALID_BIT_RATE);
   }
@@ -828,7 +906,7 @@ int16_t SX127x::setRxBandwidth(float rxBw) {
   return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_RX_BW, calculateBWManExp(rxBw), 4, 0));
 }
 
-int16_t SX127x::setAFCBandwidth(float rxBw){
+int16_t SX127x::setAFCBandwidth(float rxBw) {
   // check active modem
   if(getActiveModem() != RADIOLIB_SX127X_FSK_OOK){
       return(RADIOLIB_ERR_WRONG_MODEM);
@@ -844,7 +922,7 @@ int16_t SX127x::setAFCBandwidth(float rxBw){
   return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_AFC_BW, calculateBWManExp(rxBw), 4, 0));
 }
 
-int16_t SX127x::setAFC(bool isEnabled){
+int16_t SX127x::setAFC(bool isEnabled) {
   // check active modem
   if(getActiveModem() != RADIOLIB_SX127X_FSK_OOK) {
     return(RADIOLIB_ERR_WRONG_MODEM);
@@ -854,7 +932,7 @@ int16_t SX127x::setAFC(bool isEnabled){
   return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_RX_CONFIG, isEnabled ? RADIOLIB_SX127X_AFC_AUTO_ON : RADIOLIB_SX127X_AFC_AUTO_OFF, 4, 4));
 }
 
-int16_t SX127x::setAFCAGCTrigger(uint8_t trigger){
+int16_t SX127x::setAFCAGCTrigger(uint8_t trigger) {
   if(getActiveModem() != RADIOLIB_SX127X_FSK_OOK) {
     return(RADIOLIB_ERR_WRONG_MODEM);
   }
@@ -998,7 +1076,7 @@ int16_t SX127x::setOOK(bool enableOOK) {
 
 int16_t SX127x::setFrequencyRaw(float newFreq) {
   int16_t state = RADIOLIB_ERR_NONE;
-  
+
   // set mode to standby if not FHSS
   if(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_PERIOD) == RADIOLIB_SX127X_HOP_PERIOD_OFF) {
     state = setMode(RADIOLIB_SX127X_STANDBY);
@@ -1050,6 +1128,62 @@ int16_t SX127x::variablePacketLengthMode(uint8_t maxLen) {
   return(SX127x::setPacketMode(RADIOLIB_SX127X_PACKET_VARIABLE, maxLen));
 }
 
+uint32_t SX127x::getTimeOnAir(size_t len) {
+  // check active modem
+  uint8_t modem = getActiveModem();
+  if (modem == RADIOLIB_SX127X_LORA) {
+    // Get symbol length in us
+    float symbolLength = (float) (uint32_t(1) << _sf) / (float) _bw;
+    // Get Low Data Rate optimization flag
+    float de = 0;
+    if (symbolLength >= 16.0) {
+      de = 1;
+    }
+    // Get explicit/implicit header enabled flag
+    float ih = (float) _mod->SPIgetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_1, 0, 0);
+    // Get CRC enabled flag
+    float crc = (float) (_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, 2, 2) >> 2);
+    // Get number of bits preamble
+    float n_pre = (float) ((_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_MSB) << 8) | _mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_LSB));
+    // Get number of bits payload
+    float n_pay = 8.0 + max(ceil((8.0 * (float) len - 4.0 * (float) _sf + 28.0 + 16.0 * crc - 20.0 * ih) / (4.0 * (float) _sf - 8.0 * de)) * (float) _cr, 0.0);
+
+    // Get time-on-air in us
+    return ceil(symbolLength * (n_pre + n_pay + 4.25)) * 1000;
+  } else if(modem == RADIOLIB_SX127X_FSK_OOK) {
+    // Get number of bits preamble
+    float n_pre = (float) ((_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_MSB_FSK) << 8) | _mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PREAMBLE_LSB_FSK)) * 8;
+    //Get the number of bits of the sync word
+    float n_syncWord = (float) (_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_SYNC_CONFIG, 2, 0) + 1) * 8;
+    //Get CRC bits
+    float crc = (_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PACKET_CONFIG_1, 4, 4) == RADIOLIB_SX127X_CRC_ON) * 16;
+
+    if (_packetLengthConfig == RADIOLIB_SX127X_PACKET_FIXED) {
+      //If Packet size fixed -> len = fixed packet length
+      len = _mod->SPIgetRegValue(RADIOLIB_SX127X_REG_PAYLOAD_LENGTH_FSK);
+    } else {
+      //if packet variable -> Add 1 extra byte for payload length
+      len += 1;
+    }
+
+    // Calculate time-on-air in us {[(length in bytes) * (8 bits / 1 byte)] / [(Bit Rate in kbps) * (1000 bps / 1 kbps)]} * (1000000 us in 1 sec)
+    return (uint32_t) (((crc + n_syncWord + n_pre + (float) (len * 8)) / (_br * 1000.0)) * 1000000.0);
+  } else {
+    return(RADIOLIB_ERR_UNKNOWN);
+  }
+
+}
+
+int16_t SX127x::setCrcFiltering(bool crcOn) {
+  _crcOn = crcOn;
+
+  if (crcOn == true) {
+    return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_PACKET_CONFIG_1, RADIOLIB_SX127X_CRC_ON, 4, 4));
+  } else {
+    return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_PACKET_CONFIG_1, RADIOLIB_SX127X_CRC_OFF, 4, 4));
+  }
+}
+
 int16_t SX127x::setRSSIConfig(uint8_t smoothingSamples, int8_t offset) {
   // check active modem
   if(getActiveModem() != RADIOLIB_SX127X_FSK_OOK) {
@@ -1068,7 +1202,7 @@ int16_t SX127x::setRSSIConfig(uint8_t smoothingSamples, int8_t offset) {
   RADIOLIB_CHECK_RANGE(offset, -16, 15, RADIOLIB_ERR_INVALID_RSSI_OFFSET);
 
   // set new register values
-  state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_RSSI_CONFIG, offset, 7, 3);
+  state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_RSSI_CONFIG, offset << 3, 7, 3);
   state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_RSSI_CONFIG, smoothingSamples, 2, 0);
   return(state);
 }
@@ -1372,11 +1506,11 @@ int16_t SX127x::setFHSSHoppingPeriod(uint8_t freqHoppingPeriod) {
 }
 
 uint8_t SX127x::getFHSSHoppingPeriod(void) {
-  return(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_PERIOD)); 
+  return(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_PERIOD));
 }
 
 uint8_t SX127x::getFHSSChannel(void) {
-  return(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_CHANNEL, 5, 0)); 
+  return(_mod->SPIgetRegValue(RADIOLIB_SX127X_REG_HOP_CHANNEL, 5, 0));
 }
 
 void SX127x::clearFHSSInt(void) {
@@ -1385,7 +1519,21 @@ void SX127x::clearFHSSInt(void) {
     _mod->SPIwriteRegister(RADIOLIB_SX127X_REG_IRQ_FLAGS, getIRQFlags() | RADIOLIB_SX127X_CLEAR_IRQ_FLAG_FHSS_CHANGE_CHANNEL);
   } else if(modem == RADIOLIB_SX127X_FSK_OOK) {
     return; //These are not the interrupts you are looking for
-  }  
+  }
+}
+
+int16_t SX127x::setDIOMapping(RADIOLIB_PIN_TYPE pin, uint8_t value) {
+  if (pin > 5)
+    return RADIOLIB_ERR_INVALID_DIO_PIN;
+
+  if (pin < 4)
+    return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_1, value, 7 - 2 * pin, 6 - 2 * pin));
+  else
+    return(_mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_2, value, 15 - 2 * pin, 14 - 2 * pin));
+}
+
+int16_t SX127x::setDIOPreambleDetect(bool usePreambleDetect) {
+  return _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DIO_MAPPING_2, (usePreambleDetect) ? RADIOLIB_SX127X_DIO_MAP_PREAMBLE_DETECT : RADIOLIB_SX127X_DIO_MAP_RSSI, 0, 0);
 }
 
 #endif

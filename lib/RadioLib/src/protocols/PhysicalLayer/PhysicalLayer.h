@@ -300,7 +300,16 @@ class PhysicalLayer {
     */
     uint8_t read();
 
-    virtual Module* getMod() = 0;
+    /*!
+      \brief Configure DIO pin mapping to get a given signal on a DIO pin (if available).
+
+      \param pin Pin number onto which a signal is to be placed.
+
+      \param value The value that indicates which function to place on that pin. See chip datasheet for details.
+
+      \returns \ref status_codes
+    */
+    virtual int16_t setDIOMapping(RADIOLIB_PIN_TYPE pin, uint8_t value);
 
   protected:
     void updateDirectBuffer(uint8_t bit);
@@ -320,6 +329,17 @@ class PhysicalLayer {
     uint8_t _directSyncWordLen;
     uint32_t _directSyncWordMask;
     bool _gotSync;
+
+    virtual Module* getMod() = 0;
+
+    // allow specific classes access the private getMod method
+    friend class AFSKClient;
+    friend class RTTYClient;
+    friend class MorseClient;
+    friend class HellClient;
+    friend class SSTVClient;
+    friend class AX25Client;
+    friend class FSK4Client;
 };
 
 #endif

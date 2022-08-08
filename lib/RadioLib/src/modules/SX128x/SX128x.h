@@ -714,6 +714,24 @@ class SX128x: public PhysicalLayer {
     int16_t setAccessAddress(uint32_t addr);
 
     /*!
+      \brief Enables or disables receiver high sensitivity mode.
+
+      \param True to enable and false to disable.
+
+      \returns 0
+    */
+    int16_t setHighSensitivityMode(bool hsm = false);
+
+    /*!
+      \brief Enables or disables receiver manual gain control.
+
+      \param gain Use 0 for automatic gain, 1 for minimum gain and up to 13 for maximum gain.
+
+      \returns 0
+    */
+    int16_t setGainControl(uint8_t gain = 0);
+
+    /*!
       \brief Gets RSSI (Recorded Signal Strength Indicator) of the last received packet.
 
       \returns RSSI of the last received packet in dBm.
@@ -726,6 +744,13 @@ class SX128x: public PhysicalLayer {
       \returns SNR of the last received packet in dB.
     */
     float getSNR();
+
+    /*!
+      \brief Gets frequency error of the latest received packet.
+
+      \returns Frequency error in Hz.
+    */
+    float getFrequencyError();
 
     /*!
       \brief Query modem for the packet length of received payload.
