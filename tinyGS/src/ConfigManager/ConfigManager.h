@@ -120,6 +120,7 @@ typedef struct
   bool flipOled = true;
   bool dnOled = true;
   bool lowPower = false;
+  float fCrystal = 1;
 } AdvancedConfig;
 
 class ConfigManager : public IotWebConf2
@@ -180,6 +181,7 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
+  float getfcrystal() { return advancedConf.fCrystal; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;

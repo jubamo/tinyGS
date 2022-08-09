@@ -667,6 +667,13 @@ void ConfigManager::parseAdvancedConf()
   {
     advancedConf.lowPower = doc["lowPower"];
   }
+
+  if ((doc.containsKey(F("fCrystal"))) && (!(advancedConf.fCrystal == doc["fCrystal"]))) 
+  {
+    advancedConf.fCrystal = doc["fCrystal"];
+    if (Radio::getInstance().isReady())
+    Radio::getInstance().begin();
+  }
 }
 
 void ConfigManager::parseModemStartup()
