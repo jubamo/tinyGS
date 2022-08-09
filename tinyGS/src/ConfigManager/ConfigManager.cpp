@@ -212,9 +212,9 @@ void ConfigManager::handleDashboard()
   if (WiFi.isConnected() ){
       s += "<tr><td>WiFi RSSI </td><td>" + String(WiFi.RSSI()) + "</td></tr>";
   }
-
   s += "<tr><td>Radio </td><td>" + String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + "</td></tr>";
-  s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>";
+  if (status.vbat != 0.0)
+    s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>";
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
@@ -345,6 +345,10 @@ void ConfigManager::handleRefreshConsole()
 
 void ConfigManager::handleRefreshWorldmap()
 {
+  board_t board;
+  if (!ConfigManager::getInstance().getBoardConfig(board))
+    return;
+
   if (getState() == IOTWEBCONF_STATE_ONLINE)
   {
     // -- Authenticate
@@ -393,7 +397,8 @@ void ConfigManager::handleRefreshWorldmap()
     data_string += String(WiFi.RSSI()) + ",";
   }
   data_string += String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + ",";
-  data_string += String(status.vbat) + ",";
+  if (status.vbat != 0.0)
+    data_string += String(status.vbat) + ",";
 
   // last packet received data (for lastpacket id table data)
   data_string += String(status.lastPacketInfo.time) + ",";
@@ -790,7 +795,10 @@ bool ConfigManager::parseBoardTemplate(board_t &board)
     board.TX_EN = doc["TXEN"];
   else
     board.TX_EN = UNUSED;
-  board.VBAT_AIN = doc["VBAT"];
+  if (doc.containsKey("VBAT"))  
+    board.VBAT_AIN = doc["VBAT"];
+  else
+    board.VBAT_AIN = UNUSED;
   board.VBAT_SCALE = doc["VBATX"];  
 
   return true;
