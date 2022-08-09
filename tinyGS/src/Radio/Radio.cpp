@@ -243,6 +243,24 @@ uint8_t Radio::listen()
   Log::console(PSTR("[%s] RSSI: %.2f dBm, SNR: %.2f dB, Freq. error: %.0f Hz"),
   chip, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror);
 
+if (ConfigManager::getInstance().getautooffset())
+{
+  board_t board;
+  if (!ConfigManager::getInstance().getBoardConfig(board))
+    return -1;
+
+  ModemInfo &m = status.modeminfo;
+
+ /* if ((newPacketInfo.frequencyerror > 5000) || (newPacketInfo.frequencyerror < -7000))
+     m.freqOffset -= (newPacketInfo.frequencyerror / 900000);
+       */
+       m.freqOffset -= (newPacketInfo.frequencyerror / 1000000); 
+
+  if (Radio::getInstance().isReady())
+    Radio::getInstance().begin();
+} 
+
+
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
     // read optional data

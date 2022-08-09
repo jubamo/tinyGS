@@ -674,6 +674,14 @@ void ConfigManager::parseAdvancedConf()
     if (Radio::getInstance().isReady())
     Radio::getInstance().begin();
   }
+    if (doc.containsKey(F("tPublish")))
+  {
+    advancedConf.tPublish = doc["tPublish"];
+  } 
+    if (doc.containsKey(F("autoOffset")))
+  {
+    advancedConf.autoOffset = doc["autoOffset"];
+  }
 }
 
 void ConfigManager::parseModemStartup()

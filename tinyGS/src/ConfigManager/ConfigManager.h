@@ -121,6 +121,8 @@ typedef struct
   bool dnOled = true;
   bool lowPower = false;
   float fCrystal = 1;
+  uint8_t  tPublish =  2; 
+  bool autoOffset = false;
 } AdvancedConfig;
 
 class ConfigManager : public IotWebConf2
@@ -182,6 +184,8 @@ public:
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
   float getfcrystal() { return advancedConf.fCrystal; }
+  uint8_t gettpublish() { return advancedConf.tPublish; }  
+  bool getautooffset() { return advancedConf.autoOffset; }  
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;

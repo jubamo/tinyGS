@@ -255,6 +255,7 @@ void MQTT_Client::sendRx(String packet, bool noisy)
   char buffer[1536];
   serializeJson(doc, buffer);
   Log::debug(PSTR("%s"), buffer);
+  if (((configManager.gettpublish() == 1) && (!status.lastPacketInfo.crc_error)) ||  (configManager.gettpublish() == 2))
   publish(buildTopic(teleTopic, topicRx).c_str(), buffer, false);
 }
 
@@ -335,6 +336,10 @@ bool isValidFrequency(uint8_t radio, float f)
 
 void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int length)
 {
+  ConfigManager &configManager = ConfigManager::getInstance();
+  if (!configManager.gettpublish())
+    return;
+    
   Radio &radio = Radio::getInstance();
 
   bool global = true;
