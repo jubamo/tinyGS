@@ -252,7 +252,7 @@ void checkButton()
     buttPressedStart = 0;
   }
 }
-
+/*
 void checkBattery(void)
 {
   #define BATTERY_INTERVAL 1000
@@ -267,9 +267,51 @@ void checkBattery(void)
       }
       else
         status.vbat = 0.0;
-    }
+    } Serial.println("Voltage " + String(status.vbat));
   }
-}
+} */
+
+void checkBattery(void)
+{  
+  #define BATTERY_INTERVAL 3000
+  static unsigned long lastReadTime = 0;
+  int medianVoltage;
+  int length = 15;
+  float voltages[16];
+  board_t board;
+
+  if (millis() - lastReadTime > BATTERY_INTERVAL) {
+    lastReadTime = millis();
+    if (configManager.getBoardConfig(board)) {
+      if (board.VBAT_AIN != UNUSED) { 
+  for (int i = 0; i < 16; i++)
+  {
+    voltages[i] = (float)analogReadMilliVolts(board.VBAT_AIN);
+    }
+  
+  //    BubbleSortAsc   from https://www.luisllamas.es/arduino-bubble-sort/
+   int i, j, flag = 1;
+   float temp;
+   for (i = 1; (i <= length) && flag; i++)
+   {
+      flag = 0;
+      for (j = 0; j < (length - 1); j++)
+      {
+         if (voltages[j + 1] < voltages[j])
+         {
+            temp = voltages[j];
+            voltages[j] = voltages[j + 1];
+            voltages[j + 1] = temp;
+            flag = 1;
+         }
+      }
+   }
+  status.vbat = voltages[7] * board.VBAT_SCALE * 0.001f;
+  //Serial.println(String(millis()) + " Voltage " + String(status.vbat));
+      }
+    }  
+   }  
+}   
 
 void handleSerial()
 {
