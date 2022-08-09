@@ -345,10 +345,6 @@ void ConfigManager::handleRefreshConsole()
 
 void ConfigManager::handleRefreshWorldmap()
 {
-  board_t board;
-  if (!ConfigManager::getInstance().getBoardConfig(board))
-    return;
-
   if (getState() == IOTWEBCONF_STATE_ONLINE)
   {
     // -- Authenticate
