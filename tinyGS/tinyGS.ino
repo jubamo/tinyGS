@@ -114,6 +114,7 @@ void configured()
 void wifiConnected()
 {
   configManager.setWifiConnectionCallback(NULL);
+  Log::console(PSTR("Local ip address: %s "), WiFi.localIP().toString().c_str());
   setupNTP();
   displayShowConnected();
   arduino_ota_setup();
@@ -264,6 +265,8 @@ void checkBattery(void)
       if (board.VBAT_AIN != UNUSED) {
         status.vbat = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
       }
+      else
+        status.vbat = 0.0;
     }
   }
 }
@@ -303,7 +306,7 @@ void handleSerial()
         }
 
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20*1000)
+        if (millis() - lastTestPacketTime < 2*1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
           break;
