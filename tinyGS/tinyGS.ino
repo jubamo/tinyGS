@@ -252,10 +252,10 @@ void checkButton()
     buttPressedStart = 0;
   }
 }
-/*
+
 void checkBattery(void)
 {
-  #define BATTERY_INTERVAL 1000
+  #define BATTERY_INTERVAL 250
   static unsigned long lastReadTime = 0;
   board_t board;
 
@@ -263,15 +263,14 @@ void checkBattery(void)
     lastReadTime = millis();
     if (configManager.getBoardConfig(board)) {
       if (board.VBAT_AIN != UNUSED) {
-        status.vbat = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
+        float vbatMeas = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
+        status.vbat = (0.85 * status.vbat) + (0.15 * vbatMeas);
       }
-      else
-        status.vbat = 0.0;
-    } Serial.println("Voltage " + String(status.vbat));
+    } //Serial.println("Millis " + String(millis()) + ",  Voltage " + String(status.vbat));
   }
-} */
+} 
 
-void checkBattery(void)
+/*void checkBattery(void)
 {  
   #define BATTERY_INTERVAL 3000
   static unsigned long lastReadTime = 0;
@@ -311,7 +310,7 @@ void checkBattery(void)
       }
     }  
    }  
-}   
+}   */
 
 void handleSerial()
 {

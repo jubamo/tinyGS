@@ -126,7 +126,7 @@ int16_t Radio::begin()
   radioHal->setDio0Action(setFlag);
 
   // start listening for LoRa packets
-  Log::console(PSTR("[%s] %13s -> (%.3f Mhz, BW-%3.2f, SF-%d, CR-%d) offset %.3f Khz"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, (1000 * m.freqOffset));
+  Log::console(PSTR("[%s] %13s -> (Freq-%.3f, BW-%3.2f, SF-%2d, CR-%d, Off-%.6f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, m.freqOffset);
   CHECK_ERROR(radioHal->startReceive());
 
   status.radio_ready = true;
