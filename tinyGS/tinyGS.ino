@@ -95,6 +95,8 @@ Radio& radio = Radio::getInstance();
 
 const char* ntpServer = "time.cloudflare.com";
 
+bool initial = true;
+
 // Global status
 Status status;
 
@@ -255,62 +257,26 @@ void checkButton()
 
 void checkBattery(void)
 {
-  #define BATTERY_INTERVAL 250
+  #define BATTERY_INTERVAL 1000
   static unsigned long lastReadTime = 0;
+  int i;
   board_t board;
 
   if (millis() - lastReadTime > BATTERY_INTERVAL) {
     lastReadTime = millis();
     if (configManager.getBoardConfig(board)) {
       if (board.VBAT_AIN != UNUSED) {
+   float temp;
         float vbatMeas = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
-        status.vbat = (0.85 * status.vbat) + (0.15 * vbatMeas);
+        if (initial) {
+            status.vbat = vbatMeas;
+            initial  = false;
+          } 
+        status.vbat = (0.75 * status.vbat) + (0.25 * vbatMeas);
       }
-    } //Serial.println("Millis " + String(millis()) + ",  Voltage " + String(status.vbat));
+    }
   }
 } 
-
-/*void checkBattery(void)
-{  
-  #define BATTERY_INTERVAL 3000
-  static unsigned long lastReadTime = 0;
-  int medianVoltage;
-  int length = 15;
-  float voltages[16];
-  board_t board;
-
-  if (millis() - lastReadTime > BATTERY_INTERVAL) {
-    lastReadTime = millis();
-    if (configManager.getBoardConfig(board)) {
-      if (board.VBAT_AIN != UNUSED) { 
-  for (int i = 0; i < 16; i++)
-  {
-    voltages[i] = (float)analogReadMilliVolts(board.VBAT_AIN);
-    }
-  
-  //    BubbleSortAsc   from https://www.luisllamas.es/arduino-bubble-sort/
-   int i, j, flag = 1;
-   float temp;
-   for (i = 1; (i <= length) && flag; i++)
-   {
-      flag = 0;
-      for (j = 0; j < (length - 1); j++)
-      {
-         if (voltages[j + 1] < voltages[j])
-         {
-            temp = voltages[j];
-            voltages[j] = voltages[j + 1];
-            voltages[j + 1] = temp;
-            flag = 1;
-         }
-      }
-   }
-  status.vbat = voltages[7] * board.VBAT_SCALE * 0.001f;
-  //Serial.println(String(millis()) + " Voltage " + String(status.vbat));
-      }
-    }  
-   }  
-}   */
 
 void handleSerial()
 {
