@@ -532,6 +532,9 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
         status.modeminfo.filter[i] = 0;
     }
 
+    if (ConfigManager::getInstance().getautooffset())
+      m.freqOffset = 0;
+      
     radio.begin();
     result = 0;
   }
