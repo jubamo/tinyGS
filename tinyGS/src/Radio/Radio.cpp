@@ -371,19 +371,19 @@ if (ConfigManager::getInstance().getautooffset())
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[SX12x8] CRC error! Data cannot be retrieved"));
+    Log::console(PSTR("[%s] CRC error! Data cannot be retrieved"), chip);
     return 2;
   }
   else if (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[SX12x8] Damaged header! Data cannot be retrieved"));
+    Log::console(PSTR("[%s] Damaged header! Data cannot be retrieved"), chip);
     return 2;
   }
   else
   {
     // some other error occurred
-    Log::console(PSTR("[SX12x8] Failed, code %d"), state);
+    Log::console(PSTR("[%s] Failed, code %d"), chip, state);
     return 3;
   }
 }
