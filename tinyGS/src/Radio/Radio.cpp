@@ -74,12 +74,14 @@ void Radio::init()
   if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
   { 
     radioHal -> setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::console(PSTR("[%s] Initializing radio ... Selected: RxEn-> %d, TxEn-> %d"),chip, board.RX_EN, board.TX_EN );
+    //Log::console(PSTR("[%s] Initializing radio ... Selected: RxEn-> %d, TxEn-> %d"),chip, board.RX_EN, board.TX_EN );
+    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, board.RX_EN, board.TX_EN );
   }
   else
-    Log::console(PSTR("[%s] Initializing radio ... "),chip);
-
-  Log::console(PSTR("[%s] Osc. correction factor %1.6f"),chip, ConfigManager::getInstance().getfcrystal());
+    //Log::console(PSTR("[%s] Initializing radio ... "),chip);
+    Log::console(PSTR("Initializing radio %s ... "),chip);
+  if (board.L_TCXO_V == 0.0)
+    Log::console(PSTR("[%s] Crystal correction k: %1.6f"),chip, ConfigManager::getInstance().getfcrystal());
 
   begin();
 }
@@ -126,7 +128,7 @@ int16_t Radio::begin()
   radioHal->setDio0Action(setFlag);
 
   // start listening for LoRa packets
-  Log::console(PSTR("[%s] %13s -> (F:%.3f, BW:%3.2f, SF:%2d, CR:%d, O:%.3f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000*m.freqOffset);
+  Log::console(PSTR("[%s] %19s -> (Fr:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
   CHECK_ERROR(radioHal->startReceive());
 
   status.radio_ready = true;

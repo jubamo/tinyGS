@@ -278,7 +278,7 @@ void ConfigManager::handleRefreshConsole()
       else
       {
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20 * 1000)
+        if (millis() - lastTestPacketTime < 2 * 1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
         }
@@ -750,6 +750,9 @@ void ConfigManager::parseModemStartup()
     else
       status.modeminfo.filter[i] = 0;
   }
+    
+    m.freqOffset = doc["f.offset"];
+    m.freqOffset /= 1000000;
 
   if (Radio::getInstance().isReady())
     Radio::getInstance().begin();

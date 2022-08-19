@@ -95,8 +95,6 @@ Radio& radio = Radio::getInstance();
 
 const char* ntpServer = "time.cloudflare.com";
 
-bool initial = true;
-
 // Global status
 Status status;
 
@@ -138,6 +136,7 @@ void setup()
   delay(100);
 
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
+  printControls();
   configManager.setWifiConnectionCallback(wifiConnected);
   configManager.setConfiguredCallback(configured);
   configManager.init();
@@ -163,7 +162,7 @@ void setup()
     displayTurnOff();
   }
   
-  printControls();
+  //printControls();
 }
 
 void loop() {  
@@ -258,7 +257,8 @@ void checkButton()
 void checkBattery(void)
 {
   #define BATTERY_INTERVAL 1000
-  static unsigned long lastReadTime = 0;
+  static unsigned long lastReadTime = 0; 
+  static bool initial = true;
   int i;
   board_t board;
 
