@@ -455,7 +455,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       Log::console(PSTR("ERROR: Wrong frequency. Ignoring."));
       return;
     }
-
+  
     ConfigManager::getInstance().setModemStartup(buff);
   }
 
@@ -475,13 +475,20 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     board_t board;
     if (!ConfigManager::getInstance().getBoardConfig(board))
       return; 
-    
+
     if (!isValidFrequency(board.L_radio, doc["freq"]))
     {
       Log::console(PSTR("ERROR: Wrong frequency. Ignoring."));
       return;
     }
-   
+
+/*if (!strcmp(doc["sat"].as<char *>(), "Polytech_Universe-2"))
+
+    {
+      Log::console(PSTR("ERROR: Satelite no permitido."));
+      return;
+    }
+ */
     ModemInfo &m = status.modeminfo;
     m.modem_mode = doc["mode"].as<String>();
     strcpy(m.satellite, doc["sat"].as<char *>());
