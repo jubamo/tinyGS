@@ -111,7 +111,7 @@
 
 // CC1101_REG_IOCFG0
 #define RADIOLIB_CC1101_GDO0_TEMP_SENSOR_OFF                   0b00000000  //  7     7     analog temperature sensor output: disabled (default)
-#define RADIOLIB_CC1101_GDO0_TEMP_SENSOR_ON                    0b10000000  //  7     0                                       enabled
+#define RADIOLIB_CC1101_GDO0_TEMP_SENSOR_ON                    0b10000000  //  7     7                                       enabled
 #define RADIOLIB_CC1101_GDO0_NORM                              0b00000000  //  6     6     GDO0 output: active high (default)
 #define RADIOLIB_CC1101_GDO0_INV                               0b01000000  //  6     6                  active low
 
@@ -592,6 +592,15 @@ class CC1101: public PhysicalLayer {
     int16_t standby() override;
 
     /*!
+      \brief Sets the module to standby.
+
+      \param mode Standby mode to be used. No effect, implemented only for PhysicalLayer compatibility.
+
+      \returns \ref status_codes
+    */
+    int16_t standby(uint8_t mode) override;
+
+    /*!
       \brief Starts direct mode transmission.
 
       \param frf Raw RF frequency value. Defaults to 0, required for quick frequency shifts in RTTY.
@@ -928,15 +937,11 @@ class CC1101: public PhysicalLayer {
     */
     int16_t setEncoding(uint8_t encoding) override;
 
-    /*!
-      \brief Some modules contain external RF switch controlled by two pins. This function gives RadioLib control over those two pins to automatically switch Rx and Tx state.
-      When using automatic RF switch control, DO NOT change the pin mode of rxEn or txEn from Arduino sketch!
-
-      \param rxEn RX enable pin.
-
-      \param txEn TX enable pin.
-    */
+    /*! \copydoc Module::setRfSwitchPins */
     void setRfSwitchPins(RADIOLIB_PIN_TYPE rxEn, RADIOLIB_PIN_TYPE txEn);
+
+    /*! \copydoc Module::setRfSwitchTable */
+    void setRfSwitchTable(const RADIOLIB_PIN_TYPE (&pins)[Module::RFSWITCH_MAX_PINS], const Module::RfSwitchMode_t table[]);
 
     /*!
      \brief Get one truly random byte from RSSI noise.

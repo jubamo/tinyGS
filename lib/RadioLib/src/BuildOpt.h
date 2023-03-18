@@ -96,6 +96,7 @@
   //#define RADIOLIB_EXCLUDE_SX127X
   //#define RADIOLIB_EXCLUDE_RFM9X      // dependent on RADIOLIB_EXCLUDE_SX127X
   //#define RADIOLIB_EXCLUDE_SX126X
+  //#define RADIOLIB_EXCLUDE_STM32WLX   // dependent on RADIOLIB_EXCLUDE_SX126X
   //#define RADIOLIB_EXCLUDE_SX128X
   //#define RADIOLIB_EXCLUDE_AFSK
   //#define RADIOLIB_EXCLUDE_AX25
@@ -119,6 +120,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -154,6 +156,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -189,6 +192,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // ESP32 doesn't support tone(), but it can be emulated via LED control peripheral
@@ -228,6 +232,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -263,6 +268,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -298,6 +304,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -333,6 +340,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
     #define RADIOLIB_TONE_UNSUPPORTED
 
@@ -369,6 +377,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -404,6 +413,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -439,6 +449,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -474,6 +485,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -509,6 +521,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino mbed OS boards have a really bad tone implementation which will crash after a couple seconds
@@ -548,6 +561,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino mbed OS boards have a really bad tone implementation which will crash after a couple seconds
@@ -587,6 +601,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -622,6 +637,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -657,6 +673,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino mbed OS boards have a really bad tone implementation which will crash after a couple seconds
@@ -696,6 +713,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -731,6 +749,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
 
     // Arduino API callbacks
     #define RADIOLIB_CB_ARGS_PIN_MODE                   (void, pinMode, uint8_t pin, PINMODE mode)
@@ -787,6 +806,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -842,6 +862,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -878,6 +899,7 @@
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       pgm_read_dword(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
 
     // Arduino API callbacks
@@ -1009,6 +1031,13 @@
   #define RADIOLIB_STATIC_ARRAY_SIZE   (256)
 #endif
 
+
+// This only compiles on STM32 boards with SUBGHZ module, but also
+// include when generating docs
+#if (!defined(ARDUINO_ARCH_STM32) || !defined(SUBGHZSPI_BASE)) && !defined(DOXYGEN)
+  #define RADIOLIB_EXCLUDE_STM32WLX
+#endif
+
 #if defined(RADIOLIB_DEBUG)
   #if defined(RADIOLIB_BUILD_ARDUINO)
     #define RADIOLIB_DEBUG_PRINT(...) { RADIOLIB_DEBUG_PORT.print(__VA_ARGS__); }
@@ -1075,7 +1104,7 @@
 
 // version definitions
 #define RADIOLIB_VERSION_MAJOR  (0x05)
-#define RADIOLIB_VERSION_MINOR  (0x05)
+#define RADIOLIB_VERSION_MINOR  (0x07)
 #define RADIOLIB_VERSION_PATCH  (0x00)
 #define RADIOLIB_VERSION_EXTRA  (0x00)
 

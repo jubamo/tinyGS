@@ -11,6 +11,10 @@
 //RADIOLIB_SX126X_CMD_SET_PA_CONFIG
 #define RADIOLIB_SX126X_PA_CONFIG_SX1262                       0x00
 
+//RADIOLIB_SX126X_REG_VERSION_STRING
+// Note: this should really be "2", however, it seems that all SX1262 devices report as SX1261
+#define RADIOLIB_SX1262_CHIP_TYPE                              1
+
 /*!
   \class SX1262
 
@@ -75,6 +79,8 @@ class SX1262: public SX126x {
     */
     int16_t beginFSK(float freq = 434.0, float br = 4.8, float freqDev = 5.0, float rxBw = 156.2, int8_t power = 10, uint16_t preambleLength = 16, float tcxoVoltage = 1.6, bool useRegulatorLDO = false);
 
+    int16_t beginLRFHSS(float freq = 434.0, float tcxoVoltage = 0, bool useRegulatorLDO = false);
+    
     // configuration methods
 
     /*!
