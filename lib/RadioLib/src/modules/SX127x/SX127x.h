@@ -514,8 +514,8 @@
 #define RADIOLIB_SX127X_DIO0_PACK_CRC_OK                       0b01000000  //  7     6
 #define RADIOLIB_SX127X_DIO0_PACK_TEMP_CHANGE_LOW_BAT          0b11000000  //  7     6
 #define RADIOLIB_SX127X_DIO1_LORA_RX_TIMEOUT                   0b00000000  //  5     4
-#define RADIOLIB_SX127X_DIO1_LORA_FHSS_CHANGE_CHANNEL          0b01000000  //  5     4
-#define RADIOLIB_SX127X_DIO1_LORA_CAD_DETECTED                 0b10000000  //  5     4
+#define RADIOLIB_SX127X_DIO1_LORA_FHSS_CHANGE_CHANNEL          0b00010000  //  5     4
+#define RADIOLIB_SX127X_DIO1_LORA_CAD_DETECTED                 0b00100000  //  5     4
 #define RADIOLIB_SX127X_DIO1_CONT_DCLK                         0b00000000  //  5     4
 #define RADIOLIB_SX127X_DIO1_CONT_RSSI_PREAMBLE_DETECT         0b00010000  //  5     4
 #define RADIOLIB_SX127X_DIO1_PACK_FIFO_LEVEL                   0b00000000  //  5     4
@@ -527,14 +527,14 @@
 #define RADIOLIB_SX127X_DIO2_PACK_RX_READY                     0b00000100  //  3     2
 #define RADIOLIB_SX127X_DIO2_PACK_TIMEOUT                      0b00001000  //  3     2
 #define RADIOLIB_SX127X_DIO2_PACK_SYNC_ADDRESS                 0b00011000  //  3     2
-#define RADIOLIB_SX127X_DIO3_LORA_CAD_DONE                     0b00000000  //  0     1
-#define RADIOLIB_SX127X_DIO3_LORA_VALID_HEADER                 0b00000001  //  0     1
-#define RADIOLIB_SX127X_DIO3_LORA_PAYLOAD_CRC_ERROR            0b00000010  //  0     1
-#define RADIOLIB_SX127X_DIO3_CONT_TIMEOUT                      0b00000000  //  0     1
-#define RADIOLIB_SX127X_DIO3_CONT_RSSI_PREAMBLE_DETECT         0b00000001  //  0     1
-#define RADIOLIB_SX127X_DIO3_CONT_TEMP_CHANGE_LOW_BAT          0b00000011  //  0     1
-#define RADIOLIB_SX127X_DIO3_PACK_FIFO_EMPTY                   0b00000000  //  0     1
-#define RADIOLIB_SX127X_DIO3_PACK_TX_READY                     0b00000001  //  0     1
+#define RADIOLIB_SX127X_DIO3_LORA_CAD_DONE                     0b00000000  //  1     0
+#define RADIOLIB_SX127X_DIO3_LORA_VALID_HEADER                 0b00000001  //  1     0
+#define RADIOLIB_SX127X_DIO3_LORA_PAYLOAD_CRC_ERROR            0b00000010  //  1     0
+#define RADIOLIB_SX127X_DIO3_CONT_TIMEOUT                      0b00000000  //  1     0
+#define RADIOLIB_SX127X_DIO3_CONT_RSSI_PREAMBLE_DETECT         0b00000001  //  1     0
+#define RADIOLIB_SX127X_DIO3_CONT_TEMP_CHANGE_LOW_BAT          0b00000011  //  1     0
+#define RADIOLIB_SX127X_DIO3_PACK_FIFO_EMPTY                   0b00000000  //  1     0
+#define RADIOLIB_SX127X_DIO3_PACK_TX_READY                     0b00000001  //  1     0
 
 // SX127X_REG_DIO_MAPPING_2
 #define RADIOLIB_SX127X_DIO4_LORA_CAD_DETECTED                 0b10000000  //  7     6
@@ -717,8 +717,10 @@ class SX127x: public PhysicalLayer {
       \brief Set interrupt service routine function to call when DIO0 activates.
 
       \param func Pointer to interrupt service routine.
+
+      \param dir Signal change direction. Defaults to RISING.
     */
-    void setDio0Action(void (*func)(void));
+    void setDio0Action(void (*func)(void), RADIOLIB_INTERRUPT_STATUS dir = RISING);
 
     /*!
       \brief Clears interrupt service routine to call when DIO0 activates.
@@ -729,8 +731,10 @@ class SX127x: public PhysicalLayer {
       \brief Set interrupt service routine function to call when DIO1 activates.
 
       \param func Pointer to interrupt service routine.
+
+      \param dir Signal change direction. Defaults to RISING.
     */
-    void setDio1Action(void (*func)(void));
+    void setDio1Action(void (*func)(void), RADIOLIB_INTERRUPT_STATUS dir = RISING);
 
     /*!
       \brief Clears interrupt service routine to call when DIO1 activates.
@@ -772,7 +776,7 @@ class SX127x: public PhysicalLayer {
 
       \returns True when a complete packet is sent, false if more data is needed.
     */
-    bool fifoAdd(uint8_t* data, int totalLen, volatile int* remLen);
+    bool fifoAdd(uint8_t* data, int totalLen, int* remLen);
 
     /*!
       \brief Set interrupt service routine function to call when FIFO is sufficently full to read.
@@ -799,6 +803,13 @@ class SX127x: public PhysicalLayer {
       \returns \ref status_codes
     */
     int16_t startTransmit(uint8_t* data, size_t len, uint8_t addr = 0) override;
+
+    /*!
+      \brief Clean up after transmission is done.
+
+      \returns \ref status_codes
+    */
+    int16_t finishTransmit() override;
 
     /*!
       \brief Interrupt-driven receive method. DIO0 will be activated when full valid packet is received.
@@ -1226,6 +1237,15 @@ class SX127x: public PhysicalLayer {
       \returns \ref status_codes
     */
     int16_t setDIOPreambleDetect(bool usePreambleDetect);
+
+    /*!
+      \brief Sets the RSSI value above which the RSSI interrupt is signaled
+
+      \param dbm A dBm value between -127.5 and 0 inclusive
+
+      \returns \ref status_codes
+    */
+    int16_t setRSSIThreshold(float dbm);
 
 #if !defined(RADIOLIB_GODMODE) && !defined(RADIOLIB_LOW_LEVEL)
   protected:

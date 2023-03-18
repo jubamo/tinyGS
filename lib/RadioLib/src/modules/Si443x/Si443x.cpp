@@ -87,19 +87,12 @@ int16_t Si443x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   while(_mod->digitalRead(_mod->getIrq())) {
     _mod->yield();
     if(_mod->micros() - start > timeout) {
-      standby();
-      clearIRQFlags();
+      finishTransmit();
       return(RADIOLIB_ERR_TX_TIMEOUT);
     }
   }
 
-  // clear interrupt flags
-  clearIRQFlags();
-
-  // set mode to standby
-  standby();
-
-  return(state);
+  return(finishTransmit());
 }
 
 int16_t Si443x::receive(uint8_t* data, size_t len) {
@@ -256,6 +249,14 @@ int16_t Si443x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
   _mod->SPIwriteRegister(RADIOLIB_SI443X_REG_OP_FUNC_CONTROL_1, RADIOLIB_SI443X_TX_ON | RADIOLIB_SI443X_XTAL_ON);
 
   return(state);
+}
+
+int16_t Si443x::finishTransmit() {
+  // clear interrupt flags
+  clearIRQFlags();
+
+  // set mode to standby to disable transmitter/RF switch
+  return(standby());
 }
 
 int16_t Si443x::startReceive() {
@@ -553,9 +554,10 @@ int16_t Si443x::setDataShaping(uint8_t sh) {
     case RADIOLIB_SHAPING_NONE:
       return(_mod->SPIsetRegValue(RADIOLIB_SI443X_REG_MODULATION_MODE_CONTROL_1, RADIOLIB_SI443X_MANCHESTER_INVERTED_OFF | RADIOLIB_SI443X_MANCHESTER_OFF | RADIOLIB_SI443X_WHITENING_OFF, 2, 0));
     case RADIOLIB_SHAPING_0_3:
+      return(RADIOLIB_ERR_INVALID_ENCODING);
     case RADIOLIB_SHAPING_0_5:
+      return(_mod->SPIsetRegValue(RADIOLIB_SI443X_REG_MODULATION_MODE_CONTROL_2, RADIOLIB_SI443X_MODULATION_GFSK, 1, 0));
     case RADIOLIB_SHAPING_1_0:
-      /// \todo implement fiter configuration - docs claim this should be possible, but seems undocumented
       return(_mod->SPIsetRegValue(RADIOLIB_SI443X_REG_MODULATION_MODE_CONTROL_1, RADIOLIB_SI443X_MANCHESTER_INVERTED_OFF | RADIOLIB_SI443X_MANCHESTER_OFF | RADIOLIB_SI443X_WHITENING_ON, 2, 0));
     default:
       return(RADIOLIB_ERR_INVALID_ENCODING);

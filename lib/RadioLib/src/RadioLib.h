@@ -47,7 +47,14 @@
 
 // print debug info
 #if defined(RADIOLIB_DEBUG)
-  #pragma message "RADIOLIB_PLATFORM: " RADIOLIB_PLATFORM
+  #define RADIOLIB_VALUE_TO_STRING(x) #x
+  #define RADIOLIB_VALUE(x) RADIOLIB_VALUE_TO_STRING(x)
+  #define RADIOLIB_VAR_NAME_VALUE(var) #var "="  RADIOLIB_VALUE(var)
+  #pragma message(RADIOLIB_VAR_NAME_VALUE(RADIOLIB_PLATFORM))
+  #pragma message(RADIOLIB_VAR_NAME_VALUE(RADIOLIB_VERSION_MAJOR))
+  #pragma message(RADIOLIB_VAR_NAME_VALUE(RADIOLIB_VERSION_MINOR))
+  #pragma message(RADIOLIB_VAR_NAME_VALUE(RADIOLIB_VERSION_PATCH))
+  #pragma message(RADIOLIB_VAR_NAME_VALUE(RADIOLIB_VERSION_EXTRA))
 #endif
 
 // check unknown/unsupported platform
@@ -87,6 +94,7 @@
 #include "protocols/AX25/AX25.h"
 #include "protocols/Hellschreiber/Hellschreiber.h"
 #include "protocols/Morse/Morse.h"
+#include "protocols/Pager/Pager.h"
 #include "protocols/RTTY/RTTY.h"
 #include "protocols/SSTV/SSTV.h"
 #include "protocols/FSK4/FSK4.h"

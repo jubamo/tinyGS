@@ -213,6 +213,16 @@
 */
 #define RADIOLIB_ERR_INVALID_DIO_PIN                           (-26)
 
+/*!
+  \brief The supplied RSSI threshold is invalid.
+*/
+#define RADIOLIB_ERR_INVALID_RSSI_THRESHOLD                    (-27)
+
+/*!
+  \brief A `NULL` pointer has been encountered. If you see this, there may be a potential security vulnerability.
+*/
+#define RADIOLIB_ERR_NULL_POINTER                              (-28)
+
 // RF69-specific status codes
 
 /*!
@@ -261,6 +271,21 @@
   \brief Supplied APRS symbol is invalid.
 */
 #define RADIOLIB_ERR_INVALID_SYMBOL                            (-201)
+
+/*!
+  \brief Mic-E Telemetry is invalid.
+*/
+#define RADIOLIB_ERR_INVALID_MIC_E_TELEMETRY                   (-202)
+
+/*!
+  \brief Mic-E Telemetry length is invalid (only 0, 2 or 5 is allowed).
+*/
+#define RADIOLIB_ERR_INVALID_MIC_E_TELEMETRY_LENGTH            (-203)
+
+/*!
+  \brief Mic-E message cannot contaion both telemetry and status text.
+*/
+#define RADIOLIB_ERR_MIC_E_TELEMETRY_STATUS                    (-204)
 
 // RTTY status codes
 
@@ -384,6 +409,18 @@
   \brief Timed out waiting for ranging exchange finish.
 */
 #define RADIOLIB_ERR_RANGING_TIMEOUT                           (-901)
+
+// Pager-specific status codes
+
+/*!
+  \brief The provided payload data configuration is invalid.
+*/
+#define RADIOLIB_ERR_INVALID_PAYLOAD                            (-1001)
+
+/*!
+  \brief The requested address was not found in the received data.
+*/
+#define RADIOLIB_ERR_ADDRESS_NOT_FOUND                          (-1002)
 
 /*!
   \}

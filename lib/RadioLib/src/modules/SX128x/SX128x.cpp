@@ -300,20 +300,12 @@ int16_t SX128x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   while(!_mod->digitalRead(_mod->getIrq())) {
     _mod->yield();
     if(_mod->micros() - start > timeout) {
-      clearIrqStatus();
-      standby();
+      finishTransmit();
       return(RADIOLIB_ERR_TX_TIMEOUT);
     }
   }
 
-  // clear interrupt flags
-  state = clearIrqStatus();
-  RADIOLIB_ASSERT(state);
-
-  // set mode to standby to disable transmitter
-  state = standby();
-
-  return(state);
+  return(finishTransmit());
 }
 
 int16_t SX128x::receive(uint8_t* data, size_t len) {
@@ -522,6 +514,14 @@ int16_t SX128x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
   return(state);
 }
 
+int16_t SX128x::finishTransmit() {
+  // clear interrupt flags
+  clearIrqStatus();
+
+  // set mode to standby to disable transmitter/RF switch
+  return(standby());
+}
+
 int16_t SX128x::startReceive(uint16_t timeout) {
   // check active modem
   if(getPacketType() == RADIOLIB_SX128X_PACKET_TYPE_RANGING) {
@@ -529,7 +529,13 @@ int16_t SX128x::startReceive(uint16_t timeout) {
   }
 
   // set DIO mapping
-  int16_t state = setDioIrqParams(RADIOLIB_SX128X_IRQ_RX_DONE | RADIOLIB_SX128X_IRQ_RX_TX_TIMEOUT | RADIOLIB_SX128X_IRQ_CRC_ERROR | RADIOLIB_SX128X_IRQ_HEADER_ERROR, RADIOLIB_SX128X_IRQ_RX_DONE);
+  uint16_t mask = RADIOLIB_SX128X_IRQ_RX_DONE;
+
+  if(timeout != RADIOLIB_SX128X_RX_TIMEOUT_INF) {
+    mask |= RADIOLIB_SX128X_IRQ_RX_TX_TIMEOUT;
+  }
+
+  int16_t state = setDioIrqParams(RADIOLIB_SX128X_IRQ_RX_DONE | RADIOLIB_SX128X_IRQ_RX_TX_TIMEOUT | RADIOLIB_SX128X_IRQ_CRC_ERROR | RADIOLIB_SX128X_IRQ_HEADER_ERROR, mask);
   RADIOLIB_ASSERT(state);
 
   // set buffer pointers
@@ -746,56 +752,56 @@ int16_t SX128x::setPreambleLength(uint32_t preambleLength) {
   return(RADIOLIB_ERR_WRONG_MODEM);
 }
 
-int16_t SX128x::setBitRate(uint16_t br) {
+int16_t SX128x::setBitRate(float br) {
   // check active modem
   uint8_t modem = getPacketType();
 
   // GFSK/BLE
   if((modem == RADIOLIB_SX128X_PACKET_TYPE_GFSK) || (modem == RADIOLIB_SX128X_PACKET_TYPE_BLE)) {
-    if(br == 125) {
+    if((uint16_t)br == 125) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_0_125_BW_0_3;
-    } else if(br == 250) {
+    } else if((uint16_t)br == 250) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_0_250_BW_0_6;
-    } else if(br == 400) {
+    } else if((uint16_t)br == 400) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_0_400_BW_1_2;
-    } else if(br == 500) {
+    } else if((uint16_t)br == 500) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_0_500_BW_1_2;
-    } else if(br == 800) {
+    } else if((uint16_t)br == 800) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_0_800_BW_2_4;
-    } else if(br == 1000) {
+    } else if((uint16_t)br == 1000) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_1_000_BW_2_4;
-    } else if(br == 1600) {
+    } else if((uint16_t)br == 1600) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_1_600_BW_2_4;
-    } else if(br == 2000) {
+    } else if((uint16_t)br == 2000) {
       _br = RADIOLIB_SX128X_BLE_GFSK_BR_2_000_BW_2_4;
     } else {
       return(RADIOLIB_ERR_INVALID_BIT_RATE);
     }
 
     // update modulation parameters
-    _brKbps = br;
+    _brKbps = (uint16_t)br;
     return(setModulationParams(_br, _modIndex, _shaping));
 
   // FLRC
   } else if(modem == RADIOLIB_SX128X_PACKET_TYPE_FLRC) {
-    if(br == 260) {
+    if((uint16_t)br == 260) {
       _br = RADIOLIB_SX128X_FLRC_BR_0_260_BW_0_3;
-    } else if(br == 325) {
+    } else if((uint16_t)br == 325) {
       _br = RADIOLIB_SX128X_FLRC_BR_0_325_BW_0_3;
-    } else if(br == 520) {
+    } else if((uint16_t)br == 520) {
       _br = RADIOLIB_SX128X_FLRC_BR_0_520_BW_0_6;
-    } else if(br == 650) {
+    } else if((uint16_t)br == 650) {
       _br = RADIOLIB_SX128X_FLRC_BR_0_650_BW_0_6;
-    } else if(br == 1000) {
+    } else if((uint16_t)br == 1000) {
       _br = RADIOLIB_SX128X_FLRC_BR_1_000_BW_1_2;
-    } else if(br == 1300) {
+    } else if((uint16_t)br == 1300) {
       _br = RADIOLIB_SX128X_FLRC_BR_1_300_BW_1_2;
     } else {
       return(RADIOLIB_ERR_INVALID_BIT_RATE);
     }
 
     // update modulation parameters
-    _brKbps = br;
+    _brKbps = (uint16_t)br;
     return(setModulationParams(_br, _crFLRC, _shaping));
 
   }
@@ -1243,6 +1249,10 @@ uint8_t SX128x::randomByte() {
   return(0);
 }
 
+int16_t SX128x::getLastError() {
+  return(_lastError);
+}
+
 #if !defined(RADIOLIB_EXCLUDE_DIRECT_RECEIVE)
 void SX128x::setDirectAction(void (*func)(void)) {
   // SX128x is unable to perform direct mode reception
@@ -1270,7 +1280,12 @@ int16_t SX128x::writeRegister(uint16_t addr, uint8_t* data, uint8_t numBytes) {
 
 int16_t SX128x::readRegister(uint16_t addr, uint8_t* data, uint8_t numBytes) {
   uint8_t cmd[] = { RADIOLIB_SX128X_CMD_READ_REGISTER, (uint8_t)((addr >> 8) & 0xFF), (uint8_t)(addr & 0xFF) };
-  return(SX128x::SPItransfer(cmd, 3, false, NULL, data, numBytes, true));
+  int16_t state = SX128x::SPItransfer(cmd, 3, false, NULL, data, numBytes, true);
+  RADIOLIB_ASSERT(state);
+
+  // check the status
+  state = checkCommandResult();
+  return(state);
 }
 
 int16_t SX128x::writeBuffer(uint8_t* data, uint8_t numBytes, uint8_t offset) {
@@ -1404,20 +1419,77 @@ int16_t SX128x::config(uint8_t modem) {
   return(RADIOLIB_ERR_NONE);
 }
 
+int16_t SX128x::checkCommandResult() {
+  int16_t state = RADIOLIB_ERR_NONE;
+
+  #if defined(RADIOLIB_SPI_PARANOID)
+  // get the status
+  uint8_t spiStatus = 0;
+  uint8_t cmd = RADIOLIB_SX128X_CMD_GET_STATUS;
+  state = SX128x::SPItransfer(&cmd, 1, false, NULL, &spiStatus, 1, true);
+  RADIOLIB_ASSERT(state);
+
+  // translate to RadioLib status code
+  switch(spiStatus) {
+    case RADIOLIB_SX128X_STATUS_CMD_TIMEOUT:
+      _lastError = RADIOLIB_ERR_SPI_CMD_TIMEOUT;
+      break;
+    case RADIOLIB_SX128X_STATUS_CMD_ERROR:
+      _lastError = RADIOLIB_ERR_SPI_CMD_INVALID;
+      break;
+    case RADIOLIB_SX128X_STATUS_CMD_FAILED:
+      _lastError = RADIOLIB_ERR_SPI_CMD_FAILED;
+      break;
+    case RADIOLIB_SX128X_STATUS_SPI_FAILED:
+      _lastError = RADIOLIB_ERR_CHIP_NOT_FOUND;
+      break;
+    default:
+      _lastError = RADIOLIB_ERR_NONE;
+  }
+
+  #endif
+
+  return(state);
+}
+
 int16_t SX128x::SPIwriteCommand(uint8_t* cmd, uint8_t cmdLen, uint8_t* data, uint8_t numBytes, bool waitForBusy) {
-  return(SX128x::SPItransfer(cmd, cmdLen, true, data, NULL, numBytes, waitForBusy));
+  // send the command
+  int16_t state = SX128x::SPItransfer(cmd, cmdLen, true, data, NULL, numBytes, waitForBusy);
+  RADIOLIB_ASSERT(state);
+
+  // check the status
+  state = checkCommandResult();
+  return(state);
 }
 
 int16_t SX128x::SPIwriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool waitForBusy) {
-  return(SX128x::SPItransfer(&cmd, 1, true, data, NULL, numBytes, waitForBusy));
+  // send the command
+  int16_t state = SX128x::SPItransfer(&cmd, 1, true, data, NULL, numBytes, waitForBusy);
+  RADIOLIB_ASSERT(state);
+
+  // check the status
+  state = checkCommandResult();
+  return(state);
 }
 
 int16_t SX128x::SPIreadCommand(uint8_t* cmd, uint8_t cmdLen, uint8_t* data, uint8_t numBytes, bool waitForBusy) {
-  return(SX128x::SPItransfer(cmd, cmdLen, false, NULL, data, numBytes, waitForBusy));
+  // send the command
+  int16_t state = SX128x::SPItransfer(cmd, cmdLen, false, NULL, data, numBytes, waitForBusy);
+  RADIOLIB_ASSERT(state);
+
+  // check the status
+  state = checkCommandResult();
+  return(state);
 }
 
 int16_t SX128x::SPIreadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes, bool waitForBusy) {
-  return(SX128x::SPItransfer(&cmd, 1, false, NULL, data, numBytes, waitForBusy));
+  // send the command
+  int16_t state = SX128x::SPItransfer(&cmd, 1, false, NULL, data, numBytes, waitForBusy);
+  RADIOLIB_ASSERT(state);
+
+  // check the status
+  state = checkCommandResult();
+  return(state);
 }
 
 int16_t SX128x::SPItransfer(uint8_t* cmd, uint8_t cmdLen, bool write, uint8_t* dataOut, uint8_t* dataIn, uint8_t numBytes, bool waitForBusy, uint32_t timeout) {
@@ -1546,13 +1618,6 @@ int16_t SX128x::SPItransfer(uint8_t* cmd, uint8_t cmdLen, bool write, uint8_t* d
       RADIOLIB_VERBOSE_PRINTLN();
     }
     RADIOLIB_VERBOSE_PRINTLN();
-  #else
-    // some faster platforms require a short delay here
-    // not sure why, but it seems that long enough SPI transaction
-    // (e.g. setPacketParams for GFSK) will fail without it
-    #if defined(RADIOLIB_SPI_SLOWDOWN)
-      _mod->delay(1);
-    #endif
   #endif
 
   // parse status

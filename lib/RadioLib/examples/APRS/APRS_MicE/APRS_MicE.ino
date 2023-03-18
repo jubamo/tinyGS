@@ -1,10 +1,10 @@
 /*
-   RadioLib APRS Position Example
+   RadioLib APRS Mic-E Example
 
-   This example sends APRS position reports 
-   using SX1278's FSK modem. The data is
-   modulated as AFSK at 1200 baud using Bell 
-   202 tones.
+   This example sends APRS position reports
+   encoded in the Mic-E format using SX1278's
+   FSK modem. The data is modulated as AFSK
+   at 1200 baud using Bell 202 tones.
 
    DO NOT transmit in APRS bands unless
    you have a ham radio license!
@@ -55,7 +55,7 @@ void setup() {
   // NOTE: moved to ISM band on purpose
   //       DO NOT transmit in APRS bands without ham radio license!
   Serial.print(F("[SX1278] Initializing ... "));
-  int state = radio.beginFSK(434.0);
+  int state = radio.beginFSK();
 
   // when using one of the non-LoRa modules for AX.25
   // (RF69, CC1101, Si4432 etc.), use the basic begin() method
@@ -97,20 +97,8 @@ void setup() {
 }
 
 void loop() {
-  Serial.print(F("[APRS] Sending position ... "));
-  
-  // send a location without message or timestamp
-  int state = aprs.sendPosition("N0CALL", 0, "4911.67N", "01635.96E");
-  delay(500);
-  
-  // send a location with message and without timestamp
-  state |= aprs.sendPosition("N0CALL", 0, "4911.67N", "01635.96E", "I'm here!");
-  delay(500);
-  
-  // send a location with message and timestamp
-  state |= aprs.sendPosition("N0CALL", 0, "4911.67N", "01635.96E", "I'm here!", "093045z");
-  delay(500);
-
+  Serial.print(F("[APRS] Sending Mic-E position ... "));
+  int state = aprs.sendMicE(49.1945, 16.6000, 120, 10, RADIOLIB_APRS_MIC_E_TYPE_EN_ROUTE);
   if(state == RADIOLIB_ERR_NONE) {
     Serial.println(F("success!"));
   } else {

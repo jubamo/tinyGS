@@ -83,7 +83,9 @@ int16_t PhysicalLayer::readData(String& str, size_t len) {
   // read the received data
   state = readData(data, length);
 
-  if(state == RADIOLIB_ERR_NONE) {
+  // any of the following leads to at least some data being available
+  // let's leave the decision of whether to keep it or not up to the user
+  if((state == RADIOLIB_ERR_NONE) || (state == RADIOLIB_ERR_CRC_MISMATCH) || (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)) {
     // add null terminator
     data[length] = 0;
 
@@ -123,7 +125,9 @@ int16_t PhysicalLayer::receive(String& str, size_t len) {
   // attempt packet reception
   state = receive(data, length);
 
-  if(state == RADIOLIB_ERR_NONE) {
+  // any of the following leads to at least some data being available
+  // let's leave the decision of whether to keep it or not up to the user
+  if((state == RADIOLIB_ERR_NONE) || (state == RADIOLIB_ERR_CRC_MISMATCH) || (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)) {
     // read the number of actually received bytes (for unknown packets)
     if(len == 0) {
       length = getPacketLength(false);
@@ -195,10 +199,16 @@ int16_t PhysicalLayer::available() {
   return(_bufferWritePos);
 }
 
-uint8_t PhysicalLayer::read() {
+void PhysicalLayer::dropSync() {
   if(_directSyncWordLen > 0) {
     _gotSync = false;
     _syncBuffer = 0;
+  }
+}
+
+uint8_t PhysicalLayer::read(bool drop) {
+  if(drop) {
+    dropSync();
   }
   _bufferWritePos--;
   return(_buffer[_bufferReadPos++]);
@@ -225,6 +235,10 @@ void PhysicalLayer::updateDirectBuffer(uint8_t bit) {
   if(!_gotSync) {
     _syncBuffer <<= 1;
     _syncBuffer |= bit;
+
+    RADIOLIB_VERBOSE_PRINT("S\t");
+    RADIOLIB_VERBOSE_PRINTLN(_syncBuffer, HEX);
+
     if((_syncBuffer & _directSyncWordMask) == _directSyncWord) {
       _gotSync = true;
       _bufferWritePos = 0;
@@ -244,6 +258,9 @@ void PhysicalLayer::updateDirectBuffer(uint8_t bit) {
     // check complete byte
     if(_bufferBitPos == 8) {
       _buffer[_bufferWritePos] = Module::flipBits(_buffer[_bufferWritePos]);
+      RADIOLIB_VERBOSE_PRINT("R\t");
+      RADIOLIB_VERBOSE_PRINTLN(_buffer[_bufferWritePos], HEX);
+
       _bufferWritePos++;
       _bufferBitPos = 0;
     }
@@ -252,5 +269,19 @@ void PhysicalLayer::updateDirectBuffer(uint8_t bit) {
 #endif
 
 int16_t PhysicalLayer::setDIOMapping(RADIOLIB_PIN_TYPE pin, uint8_t value) {
+  (void)pin;
+  (void)value;
   return(RADIOLIB_ERR_UNSUPPORTED);
 }
+
+#if defined(RADIOLIB_INTERRUPT_TIMING)
+void PhysicalLayer::setInterruptSetup(void (*func)(uint32_t)) {
+  Module* mod = getMod();
+  mod->TimerSetupCb = func;
+}
+
+void PhysicalLayer::setTimerFlag() {
+  Module* mod = getMod();
+  mod->TimerFlag = true;
+}
+#endif

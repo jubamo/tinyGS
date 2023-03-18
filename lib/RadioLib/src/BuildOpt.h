@@ -82,11 +82,6 @@
   // the following must be defined if the Arduino core does not support tone function
   //#define RADIOLIB_TONE_UNSUPPORTED
 
-  // some platforms seem to have issues with SPI modules that use a command interface
-  // this can be mitigated by adding delays into SPI communication
-  // (see https://github.com/jgromes/RadioLib/issues/158 for details)
-  //#define RADIOLIB_SPI_SLOWDOWN
-
   // some of RadioLib drivers may be excluded, to prevent collisions with platforms (or to speed up build process)
   // the following is a complete list of all possible exclusion macros, uncomment any of them to disable that driver
   // NOTE: Some of the exclusion macros are dependent on each other. For example, it is not possible to exclude RF69
@@ -227,16 +222,13 @@
     #define RADIOLIB_PIN_MODE                           uint32_t
     #define RADIOLIB_PIN_STATUS                         uint32_t
     #define RADIOLIB_INTERRUPT_STATUS                   RADIOLIB_PIN_STATUS
-    #define RADIOLIB_DIGITAL_PIN_TO_INTERRUPT(p)        digitalPinToInterrupt((PinName)p)
+    #define RADIOLIB_DIGITAL_PIN_TO_INTERRUPT(p)        digitalPinToInterrupt(p)
     #define RADIOLIB_NC                                 (0xFFFFFFFF)
     #define RADIOLIB_DEFAULT_SPI                        SPI
     #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
-
-    // slow down SX126x/8x SPI on this platform
-    #define RADIOLIB_SPI_SLOWDOWN
 
     // Arduino API callbacks
     #define RADIOLIB_CB_ARGS_PIN_MODE                   (void, pinMode, uint32_t dwPin, uint32_t dwMode)
@@ -272,9 +264,6 @@
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
-
-    // slow down SX126x/8x SPI on this platform
-    #define RADIOLIB_SPI_SLOWDOWN
 
     // Arduino API callbacks
     #define RADIOLIB_CB_ARGS_PIN_MODE                   (void, pinMode, uint32_t dwPin, uint32_t dwMode)
@@ -437,7 +426,7 @@
     #define RADIOLIB_CB_ARGS_SPI_END_TRANSACTION        (void, SPIendTransaction, void)
     #define RADIOLIB_CB_ARGS_SPI_END                    (void, SPIend, void)
 
-  #elif defined(ARDUINO_AVR_UNO_WIFI_REV2) || defined(ARDUINO_AVR_NANO_EVERY)
+  #elif defined(ARDUINO_AVR_UNO_WIFI_REV2) || defined(ARDUINO_AVR_NANO_EVERY) || defined(PORTDUINO)
     // Arduino megaAVR boards - Uno Wifi Rev.2, Nano Every
     #define RADIOLIB_PLATFORM                           "Arduino megaAVR"
     #define RADIOLIB_PIN_TYPE                           uint8_t
@@ -486,9 +475,6 @@
     #define RADIOLIB_NONVOLATILE                        PROGMEM
     #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
     #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
-
-    // slow down SX126x/8x SPI on this platform
-    #define RADIOLIB_SPI_SLOWDOWN
 
     // Arduino API callbacks
     #define RADIOLIB_CB_ARGS_PIN_MODE                   (void, pinMode, pin_size_t pinName, Arduino_PinMode pinMode)
@@ -542,7 +528,7 @@
     #define RADIOLIB_CB_ARGS_DELAY_MICROSECONDS         (void, delayMicroseconds, unsigned int us)
     #define RADIOLIB_CB_ARGS_MILLIS                     (unsigned long, millis, void)
     #define RADIOLIB_CB_ARGS_MICROS                     (unsigned long, micros, void)
-    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, PinStatus state, unsigned long timeout)
+    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, uint8_t state, unsigned long timeout)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN                  (void, SPIbegin, void)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN_TRANSACTION      (void, SPIbeginTransaction, void)
     #define RADIOLIB_CB_ARGS_SPI_TRANSFER               (uint8_t, SPItransfer, uint8_t b)
@@ -581,7 +567,7 @@
     #define RADIOLIB_CB_ARGS_DELAY_MICROSECONDS         (void, delayMicroseconds, unsigned int us)
     #define RADIOLIB_CB_ARGS_MILLIS                     (unsigned long, millis, void)
     #define RADIOLIB_CB_ARGS_MICROS                     (unsigned long, micros, void)
-    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, PinStatus state, unsigned long timeout)
+    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, uint8_t state, unsigned long timeout)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN                  (void, SPIbegin, void)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN_TRANSACTION      (void, SPIbeginTransaction, void)
     #define RADIOLIB_CB_ARGS_SPI_TRANSFER               (uint8_t, SPItransfer, uint8_t b)
@@ -658,8 +644,8 @@
     #define RADIOLIB_CB_ARGS_SPI_END_TRANSACTION        (void, SPIendTransaction, void)
     #define RADIOLIB_CB_ARGS_SPI_END                    (void, SPIend, void)
 
-  #elif defined(ARDUINO_ARCH_RP2040)
-    // Raspberry Pi Pico
+  #elif defined(ARDUINO_ARCH_MBED_RP2040)
+    // Raspberry Pi Pico (official mbed core)
     #define RADIOLIB_PLATFORM                           "Raspberry Pi Pico"
     #define RADIOLIB_PIN_TYPE                           pin_size_t
     #define RADIOLIB_PIN_MODE                           PinMode
@@ -690,7 +676,42 @@
     #define RADIOLIB_CB_ARGS_DELAY_MICROSECONDS         (void, delayMicroseconds, unsigned int us)
     #define RADIOLIB_CB_ARGS_MILLIS                     (unsigned long, millis, void)
     #define RADIOLIB_CB_ARGS_MICROS                     (unsigned long, micros, void)
-    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, PinStatus state, unsigned long timeout)
+    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, uint8_t state, unsigned long timeout)
+    #define RADIOLIB_CB_ARGS_SPI_BEGIN                  (void, SPIbegin, void)
+    #define RADIOLIB_CB_ARGS_SPI_BEGIN_TRANSACTION      (void, SPIbeginTransaction, void)
+    #define RADIOLIB_CB_ARGS_SPI_TRANSFER               (uint8_t, SPItransfer, uint8_t b)
+    #define RADIOLIB_CB_ARGS_SPI_END_TRANSACTION        (void, SPIendTransaction, void)
+    #define RADIOLIB_CB_ARGS_SPI_END                    (void, SPIend, void)
+
+  #elif defined(ARDUINO_ARCH_RP2040)
+    // Raspberry Pi Pico (unofficial core)
+    #define RADIOLIB_PLATFORM                           "Raspberry Pi Pico (unofficial)"
+    #define RADIOLIB_PIN_TYPE                           pin_size_t
+    #define RADIOLIB_PIN_MODE                           PinMode
+    #define RADIOLIB_PIN_STATUS                         PinStatus
+    #define RADIOLIB_INTERRUPT_STATUS                   RADIOLIB_PIN_STATUS
+    #define RADIOLIB_DIGITAL_PIN_TO_INTERRUPT(p)        digitalPinToInterrupt(p)
+    #define RADIOLIB_NC                                 (0xFF)
+    #define RADIOLIB_DEFAULT_SPI                        SPI
+    #define RADIOLIB_DEFAULT_SPI_SETTINGS               SPISettings(2000000, MSBFIRST, SPI_MODE0)
+    #define RADIOLIB_NONVOLATILE                        PROGMEM
+    #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        pgm_read_byte(addr)
+    #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
+
+    // Arduino API callbacks
+    #define RADIOLIB_CB_ARGS_PIN_MODE                   (void, pinMode, pin_size_t pin, PinMode mode)
+    #define RADIOLIB_CB_ARGS_DIGITAL_WRITE              (void, digitalWrite, pin_size_t pin, PinStatus val)
+    #define RADIOLIB_CB_ARGS_DIGITAL_READ               (PinStatus, digitalRead, pin_size_t pin)
+    #define RADIOLIB_CB_ARGS_TONE                       (void, tone, uint8_t pin, unsigned int frequency, unsigned long duration)
+    #define RADIOLIB_CB_ARGS_NO_TONE                    (void, noTone, uint8_t pin)
+    #define RADIOLIB_CB_ARGS_ATTACH_INTERRUPT           (void, attachInterrupt, pin_size_t interruptNum, voidFuncPtr func, PinStatus mode)
+    #define RADIOLIB_CB_ARGS_DETACH_INTERRUPT           (void, detachInterrupt, pin_size_t interruptNum)
+    #define RADIOLIB_CB_ARGS_YIELD                      (void, yield, void)
+    #define RADIOLIB_CB_ARGS_DELAY                      (void, delay, unsigned long ms)
+    #define RADIOLIB_CB_ARGS_DELAY_MICROSECONDS         (void, delayMicroseconds, unsigned int us)
+    #define RADIOLIB_CB_ARGS_MILLIS                     (unsigned long, millis, void)
+    #define RADIOLIB_CB_ARGS_MICROS                     (unsigned long, micros, void)
+    #define RADIOLIB_CB_ARGS_PULSE_IN                   (unsigned long, pulseIn, pin_size_t pin, uint8_t state, unsigned long timeout)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN                  (void, SPIbegin, void)
     #define RADIOLIB_CB_ARGS_SPI_BEGIN_TRANSACTION      (void, SPIbeginTransaction, void)
     #define RADIOLIB_CB_ARGS_SPI_TRANSFER               (uint8_t, SPItransfer, uint8_t b)
@@ -968,6 +989,14 @@
 #endif
 
 /*
+ * Uncomment to enable interrupt-based timing control
+ * For details, see https://github.com/jgromes/RadioLib/wiki/Interrupt-Based-Timing
+ */
+#if !defined(RADIOLIB_INTERRUPT_TIMING)
+  //#define RADIOLIB_INTERRUPT_TIMING
+#endif
+
+/*
  * Uncomment to enable static-only memory management: no dynamic allocation will be performed.
  * Warning: Large static arrays will be created in some methods. It is not advised to send large packets in this mode.
  */
@@ -1046,7 +1075,7 @@
 
 // version definitions
 #define RADIOLIB_VERSION_MAJOR  (0x05)
-#define RADIOLIB_VERSION_MINOR  (0x03)
+#define RADIOLIB_VERSION_MINOR  (0x05)
 #define RADIOLIB_VERSION_PATCH  (0x00)
 #define RADIOLIB_VERSION_EXTRA  (0x00)
 

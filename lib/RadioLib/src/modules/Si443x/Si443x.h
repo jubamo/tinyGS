@@ -684,6 +684,13 @@ class Si443x: public PhysicalLayer {
     int16_t startTransmit(uint8_t* data, size_t len, uint8_t addr = 0) override;
 
     /*!
+      \brief Clean up after transmission is done.
+
+      \returns \ref status_codes
+    */
+    int16_t finishTransmit() override;
+
+    /*!
       \brief Interrupt-driven receive method. IRQ will be activated when full valid packet is received.
 
       \returns \ref status_codes
@@ -770,7 +777,7 @@ class Si443x: public PhysicalLayer {
 
     /*!
       \brief Sets Gaussian filter bandwidth-time product that will be used for data shaping. Only available in FSK mode with FSK modulation.
-      Allowed values are RADIOLIB_SHAPING_0_3, RADIOLIB_SHAPING_0_5 or RADIOLIB_SHAPING_1_0. Set to RADIOLIB_SHAPING_NONE to disable data shaping.
+      Allowed values are RADIOLIB_SHAPING_0_5 or RADIOLIB_SHAPING_1_0. Set to RADIOLIB_SHAPING_NONE to disable data shaping.
 
       \param sh Gaussian shaping bandwidth-time product that will be used for data shaping
 

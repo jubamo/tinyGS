@@ -171,6 +171,13 @@
 #define RADIOLIB_NRF24_DYN_ACK_OFF                             0b00000000  //  0     0     payloads without ACK: disabled (default)
 #define RADIOLIB_NRF24_DYN_ACK_ON                              0b00000001  //  0     0                           enabled
 
+// Defaults
+#define RADIOLIB_NRF24_DEFAULT_FREQ                            2400
+#define RADIOLIB_NRF24_DEFAULT_DR                              1000
+#define RADIOLIB_NRF24_DEFAULT_POWER                           -12
+#define RADIOLIB_NRF24_DEFAULT_ADDRWIDTH                       5
+
+
 /*!
   \class nRF24
 
@@ -208,7 +215,11 @@ class nRF24: public PhysicalLayer {
 
       \returns \ref status_codes
     */
-    int16_t begin(int16_t freq = 2400, int16_t dataRate = 1000, int8_t power = -12, uint8_t addrWidth = 5);
+      int16_t begin(
+        int16_t freq = RADIOLIB_NRF24_DEFAULT_FREQ,
+        int16_t dataRate = RADIOLIB_NRF24_DEFAULT_DR,
+        int8_t power = RADIOLIB_NRF24_DEFAULT_POWER,
+        uint8_t addrWidth = RADIOLIB_NRF24_DEFAULT_ADDRWIDTH);
 
     /*!
       \brief Sets the module to sleep mode.
@@ -290,6 +301,13 @@ class nRF24: public PhysicalLayer {
     int16_t startTransmit(uint8_t* data, size_t len, uint8_t addr) override;
 
     /*!
+      \brief Clean up after transmission is done.
+
+      \returns \ref status_codes
+    */
+    int16_t finishTransmit() override;
+
+    /*!
       \brief Interrupt-driven receive method. IRQ will be activated when full packet is received.
 
       \returns \ref status_codes
@@ -316,16 +334,16 @@ class nRF24: public PhysicalLayer {
 
       \returns \ref status_codes
     */
-    int16_t setFrequency(int16_t freq);
+    int16_t setFrequency(float freq);
 
     /*!
-      \brief Sets data rate. Allowed values are 2000, 1000 or 250 kbps.
+      \brief Sets bit rate. Allowed values are 2000, 1000 or 250 kbps.
 
-      \param dataRate Data rate to be set in kbps.
+      \param br Bit rate to be set in kbps.
 
       \returns \ref status_codes
     */
-    int16_t setDataRate(int16_t dataRate);
+    int16_t setBitRate(float br);
 
     /*!
       \brief Sets output power. Allowed values are -18, -12, -6 or 0 dBm.
@@ -502,7 +520,11 @@ class nRF24: public PhysicalLayer {
   protected:
 #endif
 
-    uint8_t _addrWidth = 0;
+    int16_t _freq = RADIOLIB_NRF24_DEFAULT_FREQ;
+    int16_t _dataRate = RADIOLIB_NRF24_DEFAULT_DR;
+    int8_t _power = RADIOLIB_NRF24_DEFAULT_POWER;
+    uint8_t _addrWidth = RADIOLIB_NRF24_DEFAULT_ADDRWIDTH;
+
 
     int16_t config();
     void clearIRQ();

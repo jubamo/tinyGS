@@ -251,6 +251,24 @@ void Module::SPItransfer(uint8_t cmd, uint8_t reg, uint8_t* dataOut, uint8_t* da
   this->SPIendTransaction();
 }
 
+void Module::waitForMicroseconds(uint32_t start, uint32_t len) {
+  #if defined(RADIOLIB_INTERRUPT_TIMING)
+  (void)start;
+  if((this->TimerSetupCb != nullptr) && (len != this->_prevTimingLen)) {
+    _prevTimingLen = len;
+    this->TimerSetupCb(len);
+  }
+  this->TimerFlag = false;
+  while(!this->TimerFlag) {
+    this->yield();
+  }
+  #else
+   while(this->micros() - start < len) {
+    this->yield();
+  }
+  #endif
+}
+
 void Module::pinMode(RADIOLIB_PIN_TYPE pin, RADIOLIB_PIN_MODE mode) {
   if((pin == RADIOLIB_NC) || (cb_pinMode == nullptr)) {
     return;
@@ -488,22 +506,34 @@ uint16_t Module::flipBits16(uint16_t i) {
 }
 
 void Module::hexdump(uint8_t* data, size_t len) {
-  for(int i = 0; i < len; i+=16) {
+  size_t rem_len = len;
+  for(size_t i = 0; i < len; i+=16) {
     char str[80];
     sprintf(str, "%07x  ", i);
-    for(int j = 0; j < 16; j++) {
+    size_t line_len = 16;
+    if(rem_len < line_len) {
+      line_len = rem_len;
+    }
+    for(size_t j = 0; j < line_len; j++) {
       sprintf(&str[8 + j*3], "%02x ", data[i+j]);
+    }
+    for(size_t j = line_len; j < 16; j++) {
+      sprintf(&str[8 + j*3], "   ");
     }
     str[56] = '|';
     str[57] = ' ';
-    for(int j = 0; j < 16; j++) {
+    for(size_t j = 0; j < line_len; j++) {
       char c = data[i+j];
       if((c < ' ') || (c > '~')) {
         c = '.';
       }
       sprintf(&str[58 + j], "%c", c);
     }
+    for(size_t j = line_len; j < 16; j++) {
+      sprintf(&str[58 + j], "   ");
+    }
     RADIOLIB_DEBUG_PRINTLN(str);
+    rem_len -= 16;
   }
 }
 

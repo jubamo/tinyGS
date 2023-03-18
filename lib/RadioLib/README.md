@@ -25,7 +25,7 @@ RadioLib was originally created as a driver for [__RadioShield__](https://github
 * __SX1231__ FSK/OOK radio module
 
 ### Supported protocols and digital modes:
-* __AX.25__ using 2-FSK or AFSK for modules:  
+* [__AX.25__](https://www.sigidwiki.com/wiki/PACKET) using 2-FSK or AFSK for modules:  
 SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, RFM2x and Si443x
 * [__RTTY__](https://www.sigidwiki.com/wiki/RTTY) using 2-FSK or AFSK for modules:  
 SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, nRF24L01, RFM2x, Si443x and SX128x
@@ -37,6 +37,8 @@ SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, RFM2x and Si443x
 SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, nRF24L01, RFM2x, Si443x and SX128x
 * [__APRS__](https://www.sigidwiki.com/wiki/APRS) using AFSK for modules:  
 SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, nRF24L01, RFM2x, Si443x and SX128x
+* [__POCSAG__](https://www.sigidwiki.com/wiki/POCSAG) using 2-FSK for modules:  
+SX127x, RFM9x, RF69, SX1231, CC1101, nRF24L01, RFM2x and Si443x
 
 ### Supported Arduino platforms:
 * __Arduino__  
@@ -69,7 +71,8 @@ SX127x, RFM9x, SX126x, RF69, SX1231, CC1101, nRF24L01, RFM2x, Si443x and SX128x
   * [__MegaCore__](https://github.com/MCUdude/MegaCore) - AVR (ATmega1281, ATmega640 etc.)
 
 * __Raspberry Pi__
-  * [__RP2040__](https://github.com/arduino/ArduinoCore-mbed) - Raspberry Pi Pico and Arduino Nano RP2040 Connect
+  * [__RP2040__ (official core)](https://github.com/arduino/ArduinoCore-mbed) - Raspberry Pi Pico and Arduino Nano RP2040 Connect
+  * [__RP2040__ (unofficial core)](https://github.com/earlephilhower/arduino-pico) - Raspberry Pi Pico/RP2040-based boards
   * [__Raspberry Pi__](https://github.com/me-no-dev/RasPiArduino) - Arduino framework for RaspberryPI
 
 * __Heltec__

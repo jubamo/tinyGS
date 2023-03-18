@@ -398,7 +398,7 @@ class SX128x: public PhysicalLayer {
 
       \param power Output power in dBm. Defaults to 10 dBm.
 
-      \parma preambleLength FSK preamble length in bits. Defaults to 16 bits.
+      \param preambleLength FSK preamble length in bits. Defaults to 16 bits.
 
       \returns \ref status_codes
     */
@@ -432,7 +432,7 @@ class SX128x: public PhysicalLayer {
 
       \param power Output power in dBm. Defaults to 10 dBm.
 
-      \parma preambleLength FLRC preamble length in bits. Defaults to 16 bits.
+      \param preambleLength FLRC preamble length in bits. Defaults to 16 bits.
 
       \param dataShaping Time-bandwidth product of the Gaussian filter to be used for shaping. Defaults to 0.5.
 
@@ -554,13 +554,27 @@ class SX128x: public PhysicalLayer {
     int16_t startTransmit(uint8_t* data, size_t len, uint8_t addr = 0) override;
 
     /*!
+      \brief Clean up after transmission is done.
+
+      \returns \ref status_codes
+    */
+    int16_t finishTransmit() override;
+
+    /*!
       \brief Interrupt-driven receive method. DIO1 will be activated when full packet is received.
 
       \param timeout Raw timeout value, expressed as multiples of 15.625 us. Defaults to RADIOLIB_SX128X_RX_TIMEOUT_INF for infinite timeout (Rx continuous mode), set to RADIOLIB_SX128X_RX_TIMEOUT_NONE for no timeout (Rx single mode).
+      If timeout other than infinite is set, signal will be generated on DIO1.
 
       \returns \ref status_codes
     */
     int16_t startReceive(uint16_t timeout = RADIOLIB_SX128X_RX_TIMEOUT_INF);
+
+    /*!
+      \brief Reads the current IRQ status.
+      \returns IRQ status bits
+    */
+    uint16_t getIrqStatus();
 
     /*!
       \brief Reads data received after calling startReceive method.
@@ -639,7 +653,7 @@ class SX128x: public PhysicalLayer {
 
       \returns \ref status_codes
     */
-    int16_t setBitRate(uint16_t br);
+    int16_t setBitRate(float br);
 
     /*!
       \brief Sets FSK frequency deviation. Allowed values range from 0.0 to 3200.0 kHz.
@@ -812,6 +826,13 @@ class SX128x: public PhysicalLayer {
    */
     uint8_t randomByte();
 
+    /*!
+     \brief Get the last recorded transaction error.
+
+     \returns \ref status_codes
+    */
+    int16_t getLastError();
+
     #if !defined(RADIOLIB_EXCLUDE_DIRECT_RECEIVE)
     /*!
       \brief Dummy method, to ensure PhysicalLayer compatibility.
@@ -860,7 +881,6 @@ class SX128x: public PhysicalLayer {
     int16_t setPacketParamsBLE(uint8_t connState, uint8_t crcLen, uint8_t bleTestPayload, uint8_t whitening);
     int16_t setPacketParamsLoRa(uint8_t preambleLen, uint8_t headerType, uint8_t payloadLen, uint8_t crc, uint8_t invertIQ = RADIOLIB_SX128X_LORA_IQ_STANDARD);
     int16_t setDioIrqParams(uint16_t irqMask, uint16_t dio1Mask, uint16_t dio2Mask = RADIOLIB_SX128X_IRQ_NONE, uint16_t dio3Mask = RADIOLIB_SX128X_IRQ_NONE);
-    uint16_t getIrqStatus();
     int16_t clearIrqStatus(uint16_t clearIrqParams = RADIOLIB_SX128X_IRQ_ALL);
     int16_t setRangingRole(uint8_t role);
     int16_t setPacketType(uint8_t type);
@@ -896,7 +916,10 @@ class SX128x: public PhysicalLayer {
     // cached BLE parameters
     uint8_t _connectionState = 0, _crcBLE = 0, _bleTestPayload = 0;
 
+    int16_t _lastError = RADIOLIB_ERR_NONE;
+
     int16_t config(uint8_t modem);
+    int16_t checkCommandResult();
 };
 
 #endif
