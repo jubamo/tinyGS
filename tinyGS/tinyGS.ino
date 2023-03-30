@@ -101,6 +101,7 @@ Status status;
 void printControls();
 void switchTestmode();
 void checkButton();
+void checkBattery(void);
 void setupNTP();
 
 void configured()
@@ -113,6 +114,7 @@ void configured()
 void wifiConnected()
 {
   configManager.setWifiConnectionCallback(NULL);
+  Log::console(PSTR("Local ip address: %s "), WiFi.localIP().toString().c_str());
   setupNTP();
   displayShowConnected();
   arduino_ota_setup();
@@ -134,6 +136,7 @@ void setup()
   delay(100);
 
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
+  printControls();
   configManager.setWifiConnectionCallback(wifiConnected);
   configManager.setConfiguredCallback(configured);
   configManager.init();
@@ -159,7 +162,7 @@ void setup()
     displayTurnOff();
   }
   
-  printControls();
+  //printControls();
 }
 
 void loop() {  
@@ -203,6 +206,8 @@ void loop() {
     displayShowStaMode(configManager.isApMode());
     return;
   }
+
+  checkBattery();
 
   // connected
 
@@ -249,6 +254,30 @@ void checkButton()
   }
 }
 
+void checkBattery(void)
+{
+  #define BATTERY_INTERVAL 1000
+  static unsigned long lastReadTime = 0; 
+  static bool initial = true;
+  int i;
+  board_t board;
+
+  if (millis() - lastReadTime > BATTERY_INTERVAL) {
+    lastReadTime = millis();
+    if (configManager.getBoardConfig(board)) {
+      if (board.VBAT_AIN != UNUSED) {
+   float temp;
+        float vbatMeas = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
+        if (initial) {
+            status.vbat = vbatMeas;
+            initial  = false;
+          } 
+        status.vbat = (0.75 * status.vbat) + (0.25 * vbatMeas);
+      }
+    }
+  }
+} 
+
 void handleSerial()
 {
   if(Serial.available())
@@ -284,7 +313,7 @@ void handleSerial()
         }
 
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20*1000)
+        if (millis() - lastTestPacketTime < 2*1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
           break;

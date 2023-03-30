@@ -79,7 +79,6 @@ public:
 
   float getRSSI(bool packet = true, bool skipReceive = false);
 
-
   float getSNR()
   {
     return radio->getSNR();
