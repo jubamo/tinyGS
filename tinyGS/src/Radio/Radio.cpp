@@ -130,7 +130,7 @@ int16_t Radio::begin()
   // start listening for LoRa packets
   Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
   CHECK_ERROR(radioHal->startReceive());
-  status.modeminfo.currentRssi = radioHal->getRSSI(false);
+  status.currentRssi = radioHal->getRSSI(false);
 
   status.radio_ready = true;
   return RADIOLIB_ERR_NONE;
@@ -171,7 +171,7 @@ void Radio::startRx()
  void Radio::currentRssi()
 {
   // get current RSSI
-  status.modeminfo.currentRssi = radioHal->getRSSI(false);
+  status.currentRssi = radioHal->getRSSI(false);
 
 }
 

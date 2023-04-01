@@ -213,6 +213,7 @@ void ConfigManager::handleDashboard()
       s += "<tr><td>WiFi RSSI </td><td>" + String(WiFi.RSSI()) + "</td></tr>";
   }
   s += "<tr><td>Radio </td><td>" + String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + "</td></tr>";
+  s += "<tr><td>Noise floor </td><td>" + String(status.currentRssi) + "</td></tr>";
   if (status.vbat != 0.0)
     s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>";
   s += F("</table></div>");
@@ -237,7 +238,6 @@ void ConfigManager::handleDashboard()
   s += "<tr><td>Signal RSSI </td><td>" + String(status.lastPacketInfo.rssi) + "</td></tr>";
   s += "<tr><td>Signal SNR </td><td>" + String(status.lastPacketInfo.snr) + "</td></tr>";
   s += "<tr><td>Frequency error </td><td>" + String(status.lastPacketInfo.frequencyerror) + "</td></tr>";
-  s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>";
   s += "<tr><td colspan=\"2\" style=\"text-align:center;\">" + String(status.lastPacketInfo.crc_error ? "CRC ERROR!" : "") + "</td></tr>";
   s += F("</table></div>");
   s += FPSTR(IOTWEBCONF_CONSOLE_BODY_INNER);
@@ -394,6 +394,9 @@ void ConfigManager::handleRefreshWorldmap()
     data_string += String(WiFi.RSSI()) + ",";
   }
   data_string += String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + ",";
+  Radio &radio = Radio::getInstance();
+  radio.currentRssi();
+  data_string += String(status.currentRssi) + ",";
   if (status.vbat != 0.0)
     data_string += String(status.vbat) + ",";
 
@@ -402,9 +405,6 @@ void ConfigManager::handleRefreshWorldmap()
   data_string += String(status.lastPacketInfo.rssi) + ",";
   data_string += String(status.lastPacketInfo.snr) + ",";
   data_string += String(status.lastPacketInfo.frequencyerror) + ",";
-  Radio &radio = Radio::getInstance();
-  radio.currentRssi();
-  data_string += String(status.modeminfo.currentRssi) + ",";
   data_string += String(status.lastPacketInfo.crc_error ? "CRC ERROR!" : "");
 
   server.sendContent(data_string + "\n");
