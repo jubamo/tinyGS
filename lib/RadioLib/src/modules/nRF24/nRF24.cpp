@@ -26,11 +26,11 @@ int16_t nRF24::begin(int16_t freq, int16_t dataRate, int8_t power, uint8_t addrW
   // check SPI connection
   int16_t val = _mod->SPIgetRegValue(RADIOLIB_NRF24_REG_SETUP_AW);
   if(!((val >= 0) && (val <= 3))) {
-    RADIOLIB_DEBUG_PRINTLN(F("No nRF24 found!"));
+    RADIOLIB_DEBUG_PRINTLN("No nRF24 found!");
     _mod->term();
     return(RADIOLIB_ERR_CHIP_NOT_FOUND);
   }
-  RADIOLIB_DEBUG_PRINTLN(F("M\tnRF24"));
+  RADIOLIB_DEBUG_PRINTLN("M\tnRF24");
 
   // configure settings inaccessible by public API
   int16_t state = config();
@@ -617,24 +617,24 @@ void nRF24::SPIwriteTxPayload(uint8_t* data, uint8_t numBytes) {
 void nRF24::SPItransfer(uint8_t cmd, bool write, uint8_t* dataOut, uint8_t* dataIn, uint8_t numBytes) {
   // start transfer
   _mod->digitalWrite(_mod->getCs(), LOW);
-  _mod->SPIbeginTransaction();
+  _mod->beginTransaction();
 
   // send command
-  _mod->SPItransfer(cmd);
+  _mod->transfer(cmd);
 
   // send data
   if(write) {
     for(uint8_t i = 0; i < numBytes; i++) {
-      _mod->SPItransfer(dataOut[i]);
+      _mod->transfer(dataOut[i]);
     }
   } else {
     for(uint8_t i = 0; i < numBytes; i++) {
-      dataIn[i] = _mod->SPItransfer(0x00);
+      dataIn[i] = _mod->transfer(0x00);
     }
   }
 
   // stop transfer
-  _mod->SPIendTransaction();
+  _mod->endTransaction();
   _mod->digitalWrite(_mod->getCs(), HIGH);
 }
 

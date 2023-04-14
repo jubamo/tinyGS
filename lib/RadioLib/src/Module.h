@@ -7,6 +7,10 @@
   #include <SPI.h>
 #endif
 
+#if defined(STM32WLxx)
+  #include <SubGhz.h>
+#endif
+
 /*!
 * Value to use as the last element in a mode table to indicate the
 * end of the table.
@@ -663,10 +667,10 @@ class Module {
     #if defined(RADIOLIB_BUILD_ARDUINO)
     void SPIbegin();
     void SPIend();
-    #endif
     virtual void SPIbeginTransaction();
     virtual uint8_t SPItransfer(uint8_t b);
     virtual void SPIendTransaction();
+    #endif
 
     /*!
       \brief Function to reflect bits within a byte.
@@ -699,6 +703,10 @@ class Module {
       \param len Number of bytes to dump.
     */
     void regdump(uint16_t start, size_t len);
+
+    #if defined(RADIOLIB_DEBUG) and defined(RADIOLIB_BUILD_ARDUINO)
+    static size_t serialPrintf(const char* format, ...);
+    #endif
 
 #if !defined(RADIOLIB_GODMODE)
   private:

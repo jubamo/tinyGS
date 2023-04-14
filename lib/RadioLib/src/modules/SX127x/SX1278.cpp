@@ -38,7 +38,7 @@ int16_t SX1278::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t sync
 
 int16_t SX1278::beginFSK(float freq, float br, float freqDev, float rxBw, int8_t power, uint16_t preambleLength, bool enableOOK) {
   // execute common part
-  int16_t state = SX127x::beginFSK(RADIOLIB_SX1278_CHIP_VERSION, br, freqDev, rxBw, preambleLength, enableOOK);
+  int16_t state = SX127x::beginFSK(RADIOLIB_SX1278_CHIP_VERSION, freqDev, rxBw, preambleLength, enableOOK);
   RADIOLIB_ASSERT(state);
 
   // configure settings not accessible by API
@@ -47,6 +47,9 @@ int16_t SX1278::beginFSK(float freq, float br, float freqDev, float rxBw, int8_t
 
   // configure publicly accessible settings
   state = setFrequency(freq);
+  RADIOLIB_ASSERT(state);
+
+  state = setBitRate(br);
   RADIOLIB_ASSERT(state);
 
   state = setOutputPower(power);
@@ -127,9 +130,7 @@ int16_t SX1278::setBandwidth(float bw) {
     // calculate symbol length and set low data rate optimization, if auto-configuration is enabled
     if(_ldroAuto) {
       float symbolLength = (float)(uint32_t(1) << SX127x::_sf) / (float)SX127x::_bw;
-      RADIOLIB_DEBUG_PRINT("Symbol length: ");
-      RADIOLIB_DEBUG_PRINT(symbolLength);
-      RADIOLIB_DEBUG_PRINTLN(" ms");
+      RADIOLIB_DEBUG_PRINTLN("Symbol length: %f ms", symbolLength);
       if(symbolLength >= 16.0) {
         state = _mod->SPIsetRegValue(RADIOLIB_SX1278_REG_MODEM_CONFIG_3, RADIOLIB_SX1278_LOW_DATA_RATE_OPT_ON, 3, 3);
       } else {
@@ -183,9 +184,7 @@ int16_t SX1278::setSpreadingFactor(uint8_t sf) {
     // calculate symbol length and set low data rate optimization, if auto-configuration is enabled
     if(_ldroAuto) {
       float symbolLength = (float)(uint32_t(1) << SX127x::_sf) / (float)SX127x::_bw;
-      RADIOLIB_DEBUG_PRINT("Symbol length: ");
-      RADIOLIB_DEBUG_PRINT(symbolLength);
-      RADIOLIB_DEBUG_PRINTLN(" ms");
+      RADIOLIB_DEBUG_PRINT("Symbol length: %f ms", symbolLength);
       if(symbolLength >= 16.0) {
         state = _mod->SPIsetRegValue(RADIOLIB_SX1278_REG_MODEM_CONFIG_3, RADIOLIB_SX1278_LOW_DATA_RATE_OPT_ON, 3, 3);
       } else {
@@ -228,6 +227,10 @@ int16_t SX1278::setCodingRate(uint8_t cr) {
     SX127x::_cr = cr;
   }
   return(state);
+}
+
+int16_t SX1278::setBitRate(float br) {
+  return(SX127x::setBitRateCommon(br, RADIOLIB_SX1278_REG_BIT_RATE_FRAC));
 }
 
 int16_t SX1278::setOutputPower(int8_t power, bool useRfo) {
@@ -463,12 +466,12 @@ int16_t SX1278::setSpreadingFactorRaw(uint8_t newSpreadingFactor) {
   // write registers
   if(newSpreadingFactor == RADIOLIB_SX127X_SF_6) {
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_1, RADIOLIB_SX1278_HEADER_IMPL_MODE, 0, 0);
-    state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, RADIOLIB_SX127X_SF_6 | RADIOLIB_SX127X_TX_MODE_SINGLE | (SX127x::_crcEnabled ? RADIOLIB_SX1278_RX_CRC_MODE_ON : RADIOLIB_SX1278_RX_CRC_MODE_OFF), 7, 2);
+    state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, RADIOLIB_SX127X_SF_6 | RADIOLIB_SX127X_TX_MODE_SINGLE, 7, 3);
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DETECT_OPTIMIZE, RADIOLIB_SX127X_DETECT_OPTIMIZE_SF_6, 2, 0);
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DETECTION_THRESHOLD, RADIOLIB_SX127X_DETECTION_THRESHOLD_SF_6);
   } else {
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_1, RADIOLIB_SX1278_HEADER_EXPL_MODE, 0, 0);
-    state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, newSpreadingFactor | RADIOLIB_SX127X_TX_MODE_SINGLE | (SX127x::_crcEnabled ? RADIOLIB_SX1278_RX_CRC_MODE_ON : RADIOLIB_SX1278_RX_CRC_MODE_OFF), 7, 2);
+    state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_MODEM_CONFIG_2, newSpreadingFactor | RADIOLIB_SX127X_TX_MODE_SINGLE, 7, 3);
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DETECT_OPTIMIZE, RADIOLIB_SX127X_DETECT_OPTIMIZE_SF_7_12, 2, 0);
     state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_DETECTION_THRESHOLD, RADIOLIB_SX127X_DETECTION_THRESHOLD_SF_7_12);
   }

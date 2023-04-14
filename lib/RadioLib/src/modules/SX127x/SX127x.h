@@ -624,8 +624,6 @@ class SX127x: public PhysicalLayer {
 
       \param chipVersion Value in SPI version register. Used to verify the connection and hardware version.
 
-      \param br Bit rate of the FSK transmission in kbps (kilobits per second).
-
       \param freqDev Frequency deviation of the FSK transmission in kHz.
 
       \param rxBw Receiver bandwidth in kHz.
@@ -636,7 +634,7 @@ class SX127x: public PhysicalLayer {
 
       \returns \ref status_codes
     */
-    int16_t beginFSK(uint8_t chipVersion, float br, float freqDev, float rxBw, uint16_t preambleLength, bool enableOOK);
+    int16_t beginFSK(uint8_t chipVersion, float freqDev, float rxBw, uint16_t preambleLength, bool enableOOK);
 
     /*!
       \brief Binary transmit method. Will transmit arbitrary binary data up to 255 bytes long using %LoRa or up to 63 bytes using FSK modem.
@@ -926,15 +924,6 @@ class SX127x: public PhysicalLayer {
     float getDataRate() const;
 
     /*!
-      \brief Sets FSK bit rate. Allowed values range from 0.5 to 300 kbps. Only available in FSK mode.
-
-      \param br Bit rate to be set (in kbps).
-
-      \returns \ref status_codes
-    */
-    int16_t setBitRate(float br);
-
-    /*!
       \brief Sets FSK frequency deviation from carrier frequency. Allowed values depend on bit rate setting and must be lower than 200 kHz. Only available in FSK mode.
 
       \param freqDev Frequency deviation to be set (in kHz).
@@ -1186,9 +1175,9 @@ class SX127x: public PhysicalLayer {
     int16_t getChipVersion();
 
     /*!
-      \brief Enables/disables Invert the LoRa I and Q signals.
+      \brief Enable/disable inversion of the I and Q signals
 
-      \param invertIQ Enable (true) or disable (false) LoRa I and Q signals.
+      \param invertIQ QI inversion enabled (true) or disabled (false);
 
       \returns \ref status_codes
     */
@@ -1298,6 +1287,7 @@ class SX127x: public PhysicalLayer {
     size_t _packetLength = 0;
 
     int16_t setFrequencyRaw(float newFreq);
+    int16_t setBitRateCommon(float br, uint8_t fracRegAddr);
     int16_t config();
     int16_t configFSK();
     int16_t getActiveModem();

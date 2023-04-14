@@ -17,11 +17,11 @@ int16_t SX127x::begin(uint8_t chipVersion, uint8_t syncWord, uint16_t preambleLe
 
   // try to find the SX127x chip
   if(!SX127x::findChip(chipVersion)) {
-    RADIOLIB_DEBUG_PRINTLN(F("No SX127x found!"));
+    RADIOLIB_DEBUG_PRINTLN("No SX127x found!");
     _mod->term();
     return(RADIOLIB_ERR_CHIP_NOT_FOUND);
   }
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX127x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX127x");
 
   // set mode to standby
   int16_t state = standby();
@@ -56,7 +56,7 @@ int16_t SX127x::begin(uint8_t chipVersion, uint8_t syncWord, uint16_t preambleLe
   return(state);
 }
 
-int16_t SX127x::beginFSK(uint8_t chipVersion, float br, float freqDev, float rxBw, uint16_t preambleLength, bool enableOOK) {
+int16_t SX127x::beginFSK(uint8_t chipVersion, float freqDev, float rxBw, uint16_t preambleLength, bool enableOOK) {
   // set module properties
   _mod->init();
   _mod->pinMode(_mod->getIrq(), INPUT);
@@ -64,11 +64,11 @@ int16_t SX127x::beginFSK(uint8_t chipVersion, float br, float freqDev, float rxB
 
   // try to find the SX127x chip
   if(!SX127x::findChip(chipVersion)) {
-    RADIOLIB_DEBUG_PRINTLN(F("No SX127x found!"));
+    RADIOLIB_DEBUG_PRINTLN("No SX127x found!");
     _mod->term();
     return(RADIOLIB_ERR_CHIP_NOT_FOUND);
   }
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX127x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX127x");
 
   // set mode to standby
   int16_t state = standby();
@@ -83,10 +83,6 @@ int16_t SX127x::beginFSK(uint8_t chipVersion, float br, float freqDev, float rxB
 
   // enable/disable OOK
   state = setOOK(enableOOK);
-  RADIOLIB_ASSERT(state);
-
-  // set bit rate
-  state = SX127x::setBitRate(br);
   RADIOLIB_ASSERT(state);
 
   // set frequency deviation
@@ -602,9 +598,6 @@ int16_t SX127x::finishTransmit() {
 int16_t SX127x::readData(uint8_t* data, size_t len) {
   int16_t modem = getActiveModem();
 
-  // put module to standby
-  standby();
-
   // get packet length
   size_t length = getPacketLength();
   size_t dumpLen = 0;
@@ -828,7 +821,7 @@ float SX127x::getDataRate() const {
   return(_dataRate);
 }
 
-int16_t SX127x::setBitRate(float br) {
+int16_t SX127x::setBitRateCommon(float br, uint8_t fracRegAddr) {
   // check active modem
   if(getActiveModem() != RADIOLIB_SX127X_FSK_OOK) {
     return(RADIOLIB_ERR_WRONG_MODEM);
@@ -851,7 +844,13 @@ int16_t SX127x::setBitRate(float br) {
   state = _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_BITRATE_MSB, (bitRate & 0xFF00) >> 8, 7, 0);
   state |= _mod->SPIsetRegValue(RADIOLIB_SX127X_REG_BITRATE_LSB, bitRate & 0x00FF, 7, 0);
 
-  /// \todo fractional part of bit rate setting (not in OOK)
+  // set fractional part of bit rate
+  if(!_ook) {
+    float bitRateRem = ((RADIOLIB_SX127X_CRYSTAL_FREQ * 1000.0) / (float)br) - (float)bitRate;
+    uint8_t bitRateFrac = bitRateRem * 16;
+    state |= _mod->SPIsetRegValue(fracRegAddr, bitRateFrac, 7, 0);
+  }
+
   if(state == RADIOLIB_ERR_NONE) {
     SX127x::_br = br;
   }
@@ -1432,17 +1431,7 @@ bool SX127x::findChip(uint8_t ver) {
     if(version == ver) {
       flagFound = true;
     } else {
-      #if defined(RADIOLIB_DEBUG)
-        RADIOLIB_DEBUG_PRINT(F("SX127x not found! ("));
-        RADIOLIB_DEBUG_PRINT(i + 1);
-        RADIOLIB_DEBUG_PRINT(F(" of 10 tries) RADIOLIB_SX127X_REG_VERSION == "));
-
-        char buffHex[12];
-        sprintf(buffHex, "0x%04X", version);
-        RADIOLIB_DEBUG_PRINT(buffHex);
-        RADIOLIB_DEBUG_PRINT(F(", expected 0x00"));
-        RADIOLIB_DEBUG_PRINTLN(ver, HEX);
-      #endif
+      RADIOLIB_DEBUG_PRINTLN("SX127x not found! (%d of 10 tries) RADIOLIB_SX127X_REG_VERSION == 0x%04X, expected 0x00%X", i + 1, version, ver);
       _mod->delay(10);
       i++;
     }
@@ -1519,7 +1508,7 @@ void SX127x::setDirectAction(void (*func)(void)) {
 }
 
 void SX127x::readBit(RADIOLIB_PIN_TYPE pin) {
-  updateDirectBuffer((uint8_t)digitalRead(pin));
+  updateDirectBuffer((uint8_t)_mod->digitalRead(pin));
 }
 #endif
 

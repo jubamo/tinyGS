@@ -114,6 +114,7 @@
 #define RADIOLIB_SX126X_REG_BROADCAST_ADDRESS                  0x06CE
 #define RADIOLIB_SX126X_REG_PAYLOAD_LENGTH                     0x0702
 #define RADIOLIB_SX126X_REG_PACKET_PARAMS                      0x0704
+#define RADIOLIB_SX126X_REG_LORA_SYNC_TIMEOUT                  0x0706
 #define RADIOLIB_SX126X_REG_IQ_CONFIG                          0x0736
 #define RADIOLIB_SX126X_REG_LORA_SYNC_WORD_MSB                 0x0740
 #define RADIOLIB_SX126X_REG_LORA_SYNC_WORD_LSB                 0x0741
@@ -132,8 +133,10 @@
 #define RADIOLIB_SX126X_REG_RSSI_AVG_WINDOW                    0x089B
 #define RADIOLIB_SX126X_REG_RX_GAIN                            0x08AC
 #define RADIOLIB_SX126X_REG_TX_CLAMP_CONFIG                    0x08D8
+#define RADIOLIB_SX126X_REG_ANA_LNA                            0x08E2
 #define RADIOLIB_SX126X_REG_LNA_CAP_TUNE_N                     0x08E3
 #define RADIOLIB_SX126X_REG_LNA_CAP_TUNE_P                     0x08E4
+#define RADIOLIB_SX126X_REG_ANA_MIXER                          0x08E5
 #define RADIOLIB_SX126X_REG_OCP_CONFIGURATION                  0x08E7
 #define RADIOLIB_SX126X_REG_RTC_CTRL                           0x0902
 #define RADIOLIB_SX126X_REG_XTA_TRIM                           0x0911
@@ -419,8 +422,17 @@
 #define RADIOLIB_SX126X_SPECTRAL_SCAN_COMPLETED                0xFF        //  7     0                           completed
 
 // RADIOLIB_SX126X_REG_RSSI_AVG_WINDOW
-#define RADIOLIB_SX126x_SPECTRAL_SCAN_WINDOW_DEFAULT           (0x05 << 2) //  7     0     default RSSI average window
+#define RADIOLIB_SX126X_SPECTRAL_SCAN_WINDOW_DEFAULT           (0x05 << 2) //  7     0     default RSSI average window
 
+// RADIOLIB_SX126X_REG_ANA_LNA
+#define RADIOLIB_SX126X_LNA_RNG_DISABLED                       0b00000001  //  0     0     random number: disabled
+#define RADIOLIB_SX126X_LNA_RNG_ENABLED                        0b00000000  //  0     0                    enabled
+
+// RADIOLIB_SX126X_REG_ANA_MIXER
+#define RADIOLIB_SX126X_MIXER_RNG_DISABLED                     0b00000001  //  7     7     random number: disabled
+#define RADIOLIB_SX126X_MIXER_RNG_ENABLED                      0b00000000  //  7     7                    enabled
+
+// size of the spectral scan result
 #define RADIOLIB_SX126X_SPECTRAL_SCAN_RES_SIZE                 (33)
 
 /*!
@@ -618,8 +630,10 @@ class SX126x: public PhysicalLayer {
     /*!
       \brief Interrupt-driven receive method. DIO1 will be activated when full packet is received.
 
-      \param timeout Raw timeout value, expressed as multiples of 15.625 us. Defaults to RADIOLIB_SX126X_RX_TIMEOUT_INF for infinite timeout (Rx continuous mode), set to RADIOLIB_SX126X_RX_TIMEOUT_NONE for no timeout (Rx single mode).
-      If timeout other than infinite is set, signal will be generated on DIO1.
+      \param timeout Receive mode type and/or raw timeout value, expressed as multiples of 15.625 us.
+      When set to RADIOLIB_SX126X_RX_TIMEOUT_INF, the timeout will be infinite and the device will remain in Rx mode until explicitly commanded to stop (Rx continuous mode).
+      When set to RADIOLIB_SX126X_RX_TIMEOUT_NONE, there will be no timeout and the device will return to standby when a packet is received (Rx single mode).
+      For any other value, timeout will be applied and signal will be generated on DIO1 for conditions defined by irqFlags and irqMask.
 
       \param irqFlags Sets the IRQ flags, defaults to RADIOLIB_SX126X_IRQ_RX_DEFAULT.
 
@@ -1047,6 +1061,15 @@ class SX126x: public PhysicalLayer {
     */
     uint8_t randomByte();
 
+    /*!
+      \brief Enable/disable inversion of the I and Q signals
+
+      \param invertIQ QI inversion enabled (true) or disabled (false);
+
+      \returns \ref status_codes
+    */
+    int16_t invertIQ(bool invertIQ);
+
     #if !defined(RADIOLIB_EXCLUDE_DIRECT_RECEIVE)
     /*!
       \brief Set interrupt service routine function to call when data bit is receveid in direct mode.
@@ -1089,7 +1112,7 @@ class SX126x: public PhysicalLayer {
 
       \returns \ref status_codes
     */
-    int16_t spectralScanStart(uint16_t numSamples, uint8_t window = RADIOLIB_SX126x_SPECTRAL_SCAN_WINDOW_DEFAULT, uint8_t interval = RADIOLIB_SX126X_SCAN_INTERVAL_8_20_US);
+    int16_t spectralScanStart(uint16_t numSamples, uint8_t window = RADIOLIB_SX126X_SPECTRAL_SCAN_WINDOW_DEFAULT, uint8_t interval = RADIOLIB_SX126X_SCAN_INTERVAL_8_20_US);
     
     /*!
       \brief Abort an ongoing spectral scan.
@@ -1124,7 +1147,7 @@ class SX126x: public PhysicalLayer {
     int16_t writeRegister(uint16_t addr, uint8_t* data, uint8_t numBytes);
     int16_t readRegister(uint16_t addr, uint8_t* data, uint8_t numBytes);
     int16_t writeBuffer(uint8_t* data, uint8_t numBytes, uint8_t offset = 0x00);
-    int16_t readBuffer(uint8_t* data, uint8_t numBytes);
+    int16_t readBuffer(uint8_t* data, uint8_t numBytes, uint8_t offset = 0x00);
     int16_t setDioIrqParams(uint16_t irqMask, uint16_t dio1Mask, uint16_t dio2Mask = RADIOLIB_SX126X_IRQ_NONE, uint16_t dio3Mask = RADIOLIB_SX126X_IRQ_NONE);
     virtual int16_t clearIrqStatus(uint16_t clearIrqParams = RADIOLIB_SX126X_IRQ_ALL);
     int16_t setRfFrequency(uint32_t frf);

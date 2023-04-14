@@ -20,7 +20,7 @@ int16_t SX128x::begin(float freq, float bw, uint8_t sf, uint8_t cr, uint8_t sync
   _mod->SPIstatusCommand = RADIOLIB_SX128X_CMD_GET_STATUS;
   _mod->SPIstreamType = true;
   _mod->SPIparseStatusCb = SPIparseStatus;
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX128x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX128x");
 
   // initialize LoRa modulation variables
   _bwKhz = bw;
@@ -81,7 +81,7 @@ int16_t SX128x::beginGFSK(float freq, uint16_t br, float freqDev, int8_t power, 
   _mod->SPIstatusCommand = RADIOLIB_SX128X_CMD_GET_STATUS;
   _mod->SPIstreamType = true;
   _mod->SPIparseStatusCb = SPIparseStatus;
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX128x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX128x");
 
   // initialize GFSK modulation variables
   _brKbps = br;
@@ -150,7 +150,7 @@ int16_t SX128x::beginBLE(float freq, uint16_t br, float freqDev, int8_t power, u
   _mod->SPIstatusCommand = RADIOLIB_SX128X_CMD_GET_STATUS;
   _mod->SPIstreamType = true;
   _mod->SPIparseStatusCb = SPIparseStatus;
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX128x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX128x");
 
   // initialize BLE modulation variables
   _brKbps = br;
@@ -205,7 +205,7 @@ int16_t SX128x::beginFLRC(float freq, uint16_t br, uint8_t cr, int8_t power, uin
   _mod->SPIstatusCommand = RADIOLIB_SX128X_CMD_GET_STATUS;
   _mod->SPIstreamType = true;
   _mod->SPIparseStatusCb = SPIparseStatus;
-  RADIOLIB_DEBUG_PRINTLN(F("M\tSX128x"));
+  RADIOLIB_DEBUG_PRINTLN("M\tSX128x");
 
   // initialize FLRC modulation variables
   _brKbps = br;
@@ -311,9 +311,7 @@ int16_t SX128x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   // calculate timeout (500% of expected time-on-air)
   uint32_t timeout = getTimeOnAir(len) * 5;
 
-  RADIOLIB_DEBUG_PRINT(F("Timeout in "));
-  RADIOLIB_DEBUG_PRINT(timeout);
-  RADIOLIB_DEBUG_PRINTLN(F(" us"));
+  RADIOLIB_DEBUG_PRINTLN("Timeout in %d us", timeout);
 
   // start transmission
   state = startTransmit(data, len, addr);
@@ -346,9 +344,7 @@ int16_t SX128x::receive(uint8_t* data, size_t len) {
   // calculate timeout (1000% of expected time-on-air)
   uint32_t timeout = getTimeOnAir(len) * 10;
 
-  RADIOLIB_DEBUG_PRINT(F("Timeout in "));
-  RADIOLIB_DEBUG_PRINT(timeout);
-  RADIOLIB_DEBUG_PRINTLN(F(" us"));
+  RADIOLIB_DEBUG_PRINTLN("Timeout in %d us", timeout);
 
   // start reception
   uint32_t timeoutValue = (uint32_t)((float)timeout / 15.625);
@@ -1182,6 +1178,12 @@ float SX128x::getFrequencyError() {
 
 size_t SX128x::getPacketLength(bool update) {
   (void)update;
+
+  // in implicit mode, return the cached value
+  if((getPacketType() == RADIOLIB_SX128X_PACKET_TYPE_LORA) && (_headerType == RADIOLIB_SX128X_LORA_HEADER_IMPLICIT)) {
+    return(_payloadLen);
+  }
+
   uint8_t rxBufStatus[2] = {0, 0};
   _mod->SPIreadStream(RADIOLIB_SX128X_CMD_GET_RX_BUFFER_STATUS, rxBufStatus, 2);
   return((size_t)rxBufStatus[0]);
@@ -1275,6 +1277,19 @@ uint8_t SX128x::randomByte() {
   // it's unclear whether SX128x can measure RSSI while not receiving a packet
   // this method is implemented only for PhysicalLayer compatibility
   return(0);
+}
+
+int16_t SX128x::invertIQ(bool invertIQ) {
+  if(getPacketType() != RADIOLIB_SX128X_PACKET_TYPE_LORA) {
+    return(RADIOLIB_ERR_WRONG_MODEM);
+  }
+
+  uint8_t invert = RADIOLIB_SX128X_LORA_IQ_STANDARD;
+  if(invertIQ) {
+    invert = RADIOLIB_SX128X_LORA_IQ_INVERTED;
+  }
+
+  return(setPacketParamsLoRa(_preambleLengthLoRa, _headerType, _payloadLen, _crcLoRa, invert));
 }
 
 #if !defined(RADIOLIB_EXCLUDE_DIRECT_RECEIVE)
