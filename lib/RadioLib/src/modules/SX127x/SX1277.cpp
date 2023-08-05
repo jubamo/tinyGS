@@ -72,7 +72,7 @@ int16_t SX1277::setFrequency(float freq) {
   // set frequency and if successful, save the new setting
   int16_t state = SX127x::setFrequencyRaw(freq);
   if(state == RADIOLIB_ERR_NONE) {
-    SX127x::_freq = freq;
+    SX127x::frequency = freq;
   }
   return(state);
 }
@@ -101,7 +101,32 @@ int16_t SX1277::setSpreadingFactor(uint8_t sf) {
   // set spreading factor and if successful, save the new setting
   int16_t state = SX1278::setSpreadingFactorRaw(newSpreadingFactor);
   if(state == RADIOLIB_ERR_NONE) {
-    SX127x::_sf = sf;
+    SX127x::spreadingFactor = sf;
+  }
+
+  return(state);
+}
+
+int16_t SX1277::setDataRate(DataRate_t dr) {
+  int16_t state = RADIOLIB_ERR_UNKNOWN;
+
+  // select interpretation based on active modem
+  uint8_t modem = this->getActiveModem();
+  if(modem == RADIOLIB_SX127X_FSK_OOK) {
+    // set the bit rate
+    state = this->setBitRate(dr.fsk.bitRate);
+    RADIOLIB_ASSERT(state);
+
+    // set the frequency deviation
+    state = this->setFrequencyDeviation(dr.fsk.freqDev);
+
+  } else if(modem == RADIOLIB_SX127X_LORA) {
+    // set the spreading factor
+    state = this->setSpreadingFactor(dr.lora.spreadingFactor);
+    RADIOLIB_ASSERT(state);
+
+    // set the bandwidth
+    state = this->setBandwidth(dr.lora.bandwidth);
   }
 
   return(state);
