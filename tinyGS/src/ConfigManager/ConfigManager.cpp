@@ -685,9 +685,11 @@ void ConfigManager::parseAdvancedConf()
     advancedConf.lowPower = doc["lowPower"];
   }
 
-  if ((doc.containsKey(F("fCrystal"))) && (!(advancedConf.fCrystal == doc["fCrystal"]))) 
+  if ((doc.containsKey(F("fCorrectPPM"))) && (!(advancedConf.fCorrectPPM == doc["fCorrectPPM"]))) 
   {
-    advancedConf.fCrystal = doc["fCrystal"];
+    advancedConf.fCorrectPPM = doc["fCorrectPPM"];
+    advancedConf.xtalFactor =  (1 - advancedConf.fCorrectPPM / 1e6 );
+    Log::console(PSTR("Crystal frequency correction: %d PPM,  Factor: %1.6f"), advancedConf.fCorrectPPM, advancedConf.xtalFactor );
     if (Radio::getInstance().isReady())
     Radio::getInstance().begin();
   }
