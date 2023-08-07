@@ -94,7 +94,7 @@ void MQTT_Client::loop()
     else
     {
       StaticJsonDocument<128> doc;
-      doc["Vbat"] = voltage();
+      doc["Vbat"] = status.vbat;
       doc["Mem"] = ESP.getFreeHeap();
       doc["RSSI"] =WiFi.RSSI();
       doc["radio"]= status.radio_error;
@@ -204,7 +204,7 @@ void MQTT_Client::sendWelcome()
   doc["board"] = configManager.getBoard();
   doc["mac"] = clientId;
   doc["seconds"] = millis()/1000;
-  doc["Vbat"] = voltage();
+  doc["Vbat"] = status.vbat;
   doc["chip"] = ESP.getChipModel();
 
   char buffer[1048];
@@ -257,6 +257,7 @@ void MQTT_Client::sendRx(String packet, bool noisy)
   char buffer[1536];
   serializeJson(doc, buffer);
   Log::debug(PSTR("%s"), buffer);
+  if (((configManager.gettpublish() == 1) && (!status.lastPacketInfo.crc_error)) ||  (configManager.gettpublish() == 2))
   publish(buildTopic(teleTopic, topicRx).c_str(), buffer, false);
 }
 
@@ -337,6 +338,10 @@ bool isValidFrequency(uint8_t radio, float f)
 
 void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int length)
 {
+  ConfigManager &configManager = ConfigManager::getInstance();
+  if (!configManager.gettpublish())
+    return;
+
   Radio &radio = Radio::getInstance();
 
   bool global = true;
@@ -477,6 +482,12 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       return;
     }
    
+/*if (!strcmp(doc["sat"].as<char *>(), "Polytech_Universe-2"))
+    {
+      Log::console(PSTR("ERROR: Satelite no permitido."));
+      return;
+    } */
+
     ModemInfo &m = status.modeminfo;
     m.modem_mode = doc["mode"].as<String>();
     strcpy(m.satellite, doc["sat"].as<char *>());
@@ -526,6 +537,9 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
       else
         status.modeminfo.filter[i] = 0;
     }
+
+    if (ConfigManager::getInstance().getautooffset())
+      m.freqOffset = 0;
 
     radio.begin();
 //    radio.currentRssi();
@@ -869,7 +883,7 @@ void MQTT_Client::begin()
 }
 
 
-
+/*
 int MQTT_Client::voltage() {
   int medianVoltage;
   int length = 21;
@@ -900,4 +914,4 @@ int MQTT_Client::voltage() {
   medianVoltage = voltages[10];
   return medianVoltage;
 }
-
+*/

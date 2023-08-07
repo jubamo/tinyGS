@@ -73,7 +73,7 @@ private:
   void remoteGoToSiesta(char* payload, size_t payload_len);
 
 
-  int  voltage();
+  //int  voltage();
   
   bool usingNewCert = true;
   unsigned long lastPing = 0;

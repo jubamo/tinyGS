@@ -111,6 +111,9 @@ typedef struct
   float L_TCXO_V;
   uint8_t RX_EN;
   uint8_t TX_EN;
+  uint8_t VBAT_AIN;     /* GPIO pin for VBAT monitoring */
+  float VBAT_SCALE;     /* potential divider between battery and GPIO pin */
+ 
   String BOARD;
 } board_t;
 
@@ -121,6 +124,9 @@ typedef struct
   bool flipOled = true;
   bool dnOled = true;
   bool lowPower = false;
+  float fCrystal = 1;
+  uint8_t  tPublish =  2; 
+  bool autoOffset = false;
 } AdvancedConfig;
 
 class ConfigManager : public IotWebConf2
@@ -181,6 +187,9 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
+  float getfcrystal() { return advancedConf.fCrystal; }
+  uint8_t gettpublish() { return advancedConf.tPublish; }  
+  bool getautooffset() { return advancedConf.autoOffset; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;
