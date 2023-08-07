@@ -121,6 +121,8 @@ typedef struct
   bool flipOled = true;
   bool dnOled = true;
   bool lowPower = false;
+  int fCorrectPPM = 0;
+  float xtalFactor = 1;
 } AdvancedConfig;
 
 class ConfigManager : public IotWebConf2
@@ -181,7 +183,8 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
-  bool getBoardConfig(board_t &board)
+  float getXtalFactor() { return advancedConf.xtalFactor; }
+  bool getBoardConfig(board_t &board) 
   {
     bool ret = true;
     if (!currentBoardDirty) { board = currentBoard; return ret; }
