@@ -136,7 +136,7 @@ void setup()
   delay(100);
 
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
-  Log::console(PSTR("Chip  %s - (Ver. %d)"),  ESP.getChipModel(),ESP.getChipRevision());
+  Log::console(PSTR("Chip  %s - (Rev. %d)"),  ESP.getChipModel(),ESP.getChipRevision());
   
   configManager.setWifiConnectionCallback(wifiConnected);
   configManager.setConfiguredCallback(configured);

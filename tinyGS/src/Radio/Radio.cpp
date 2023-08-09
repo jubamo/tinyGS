@@ -88,9 +88,6 @@ void Radio::init()
    }
   else
     Log::console(PSTR("Initializing radio %s ... "),chip);
- // if (board.L_TCXO_V == 0.0)
-  //  Log::console(PSTR("[%s] Crystal correction k: %1.6f"),chip, ConfigManager::getInstance().getXtalFactor());
-
   begin();
 }
 
@@ -105,6 +102,7 @@ int16_t Radio::begin()
 
   if (m.modem_mode == "LoRa")
   {
+    Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
     if (m.frequency != 0) 
     {
       CHECK_ERROR(radioHal->begin(((m.frequency + m.freqOffset) * ConfigManager::getInstance().getXtalFactor()), m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
@@ -122,6 +120,7 @@ int16_t Radio::begin()
   }
   else
   {
+    Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, BR:%2.2f, Dev:%2.2f, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
     CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * ConfigManager::getInstance().getXtalFactor()), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
@@ -135,7 +134,6 @@ int16_t Radio::begin()
   // attach the ISR to radio interrupt
   radioHal->setDio0Action(setFlag);
   // start listening for LoRa packets
-  Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
    CHECK_ERROR(radioHal->startReceive());
   status.modeminfo.currentRssi = radioHal->getRSSI(false,true);
 
