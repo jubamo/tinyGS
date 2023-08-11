@@ -195,6 +195,7 @@ public:
   float getXtalFactor() { return advancedConf.xtalFactor; }
   uint8_t gettpublish() { return advancedConf.tPublish; }  
   bool getautooffset() { return advancedConf.autoOffset; }
+  int getSetPPM() { return advancedConf.fCorrectPPM; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;

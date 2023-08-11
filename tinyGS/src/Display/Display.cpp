@@ -227,9 +227,11 @@ void drawFrame3(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
   }
   if (status.vbat != 0.0)
   {
-      display->setTextAlignment(TEXT_ALIGN_LEFT);
-      display->drawString(x, 45 + y, "Volt: " + String(status.vbat) + "V");
+      display->setTextAlignment(TEXT_ALIGN_RIGHT);
+      display->drawString(128 + x, 45 + y, "Volt: " + String(status.vbat) + "V");
   }
+  display->setTextAlignment(TEXT_ALIGN_LEFT);
+      display->drawString(x, 45 + y, "Corr.: " + String(ConfigManager::getInstance().getSetPPM()) + "PPM");
 }
 
 void drawFrame4(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y)

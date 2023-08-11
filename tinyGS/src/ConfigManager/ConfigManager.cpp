@@ -224,6 +224,7 @@ void ConfigManager::handleDashboard()
     s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>"; 
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
+  s += "<tr><td>Correction PPM </td><td>" + String(advancedConf.fCorrectPPM ) + "</td></tr>";
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
   s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
@@ -376,7 +377,8 @@ void ConfigManager::handleRefreshWorldmap()
   String data_string = cx + "," + cy + ",";
 
   // modem configuration (for modemconfig id table data)
-  data_string += String(status.modeminfo.satellite) + "," +
+  data_string += String(advancedConf.fCorrectPPM) + "," +             
+                 String(status.modeminfo.satellite) + "," +
                  String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + ",";
   if (status.modeminfo.modem_mode == "LoRa")
