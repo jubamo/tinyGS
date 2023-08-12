@@ -129,7 +129,6 @@ typedef struct
   bool dnOled = true;
   bool lowPower = false;
   int fCorrectPPM = 0;
-  float xtalFactor = 1;
   uint8_t  tPublish =  2; 
   bool autoOffset = false;
 } AdvancedConfig;
@@ -192,10 +191,10 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
-  float getXtalFactor() { return advancedConf.xtalFactor; }
   uint8_t gettpublish() { return advancedConf.tPublish; }  
   bool getautooffset() { return advancedConf.autoOffset; }
   int getSetPPM() { return advancedConf.fCorrectPPM; }
+  float getXtalFactor() { return 1 - advancedConf.fCorrectPPM / 1e6; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;
