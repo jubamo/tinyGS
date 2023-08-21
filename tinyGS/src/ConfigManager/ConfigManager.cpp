@@ -118,6 +118,7 @@ ConfigManager::ConfigManager()
   groupAdvanced.addItem(&boardTemplateParam);
   groupAdvanced.addItem(&modemParam);
   groupAdvanced.addItem(&advancedConfigParam);
+  groupAdvanced.addItem(&customConfigParam);
   addParameterGroup(&groupAdvanced);
 }
 
@@ -219,9 +220,13 @@ void ConfigManager::handleDashboard()
   }
 
   s += "<tr><td>Radio </td><td>" + String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + "</td></tr>";
-   s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>"; 
+  s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>"; 
+  if (status.vbat != 0.0)
+    s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>"; 
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
+  if (customConf.fCorrectPPM  != 0)
+    s += "<tr><td>Correction PPM </td><td>" + String(customConf.fCorrectPPM ) + "</td></tr>";
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
   s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
@@ -283,7 +288,7 @@ void ConfigManager::handleRefreshConsole()
       else
       {
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20 * 1000)
+        if (millis() - lastTestPacketTime < 2 * 1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
         }
@@ -374,6 +379,8 @@ void ConfigManager::handleRefreshWorldmap()
   String data_string = cx + "," + cy + ",";
 
   // modem configuration (for modemconfig id table data)
+  if (customConf.fCorrectPPM != 0) 
+    data_string += String(customConf.fCorrectPPM) + "," ;             
   data_string += String(status.modeminfo.satellite) + "," +
                  String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + ",";
@@ -400,6 +407,8 @@ void ConfigManager::handleRefreshWorldmap()
   Radio &radio = Radio::getInstance();
   radio.currentRssi();
   data_string += String(status.modeminfo.currentRssi) + ",";
+  if (status.vbat != 0.0)
+    data_string += String(status.vbat) + ",";
   
   // last packet received data (for lastpacket id table data)
   data_string += String(status.lastPacketInfo.time) + ",";
@@ -504,6 +513,7 @@ void ConfigManager::resetAllConfig()
   boardTemplate[0] = '\0';
   modemStartup[0] = '\0';
   advancedConfig[0] = '\0';
+  customConfig[0] = '\0';
 
   saveConfig();
 }
@@ -524,6 +534,9 @@ boolean ConfigManager::init()
 
   if (strlen(advancedConfig))
     parseAdvancedConf();
+
+  if (strlen(customConfig))
+    parseCustomConf();  
 
   parseModemStartup();
 
@@ -572,7 +585,6 @@ void ConfigManager::boardDetection()
     itoa(LILYGO_T3_V1_6_1_LF, board, 10);
     return;
   };
- #endif
 
   for (uint8_t ite = 0; ite < ((sizeof(boards) / sizeof(boards[0]))); ite++)
   {
@@ -657,8 +669,9 @@ void ConfigManager::configSavedCallback()
   }
 
   parseAdvancedConf();
+  parseCustomConf();
   remoteSave = false; // reset to false so web callbacks are received as false
-  
+
 }
 
 void ConfigManager::parseAdvancedConf()
@@ -688,6 +701,54 @@ void ConfigManager::parseAdvancedConf()
   if (doc.containsKey(F("lowPower")))
   {
     advancedConf.lowPower = doc["lowPower"];
+  }
+}
+
+void ConfigManager::parseCustomConf()
+{
+  if (!strlen(customConfig))
+    return;
+
+  size_t size = 512;
+  DynamicJsonDocument doc(size);
+  deserializeJson(doc, (const char *)customConfig);
+
+ if ((doc.containsKey(F("fCorrectPPM"))) && (!(customConf.fCorrectPPM == doc["fCorrectPPM"]))) 
+  {
+    customConf.fCorrectPPM = doc["fCorrectPPM"];
+    Log::console(PSTR("Crystal frequency correction: %d PPM,  Factor: %1.6f"), customConf.fCorrectPPM, getXtalFactor());
+    if (Radio::getInstance().isReady())
+    Radio::getInstance().begin();
+  }
+
+  if (doc.containsKey(F("tPublish")))
+  {
+    customConf.tPublish = doc["tPublish"];
+  } 
+
+    if (doc.containsKey(F("autoOffset")))
+  {  
+    customConf.autoOffset = doc["autoOffset"];
+  }
+
+  if (doc.containsKey(F("vBattAin")))
+  {
+    customConf.VBAT_AIN = doc["vBattAin"];
+  } 
+
+  if (doc.containsKey(F("vBattScale")))
+  {
+    customConf.VBAT_SCALE = doc["vBattScale"];
+  } 
+
+  if (doc.containsKey(F("rxEnPin")))
+  {
+    customConf.RX_EN = doc["rxEnPin"];
+  } 
+
+    if (doc.containsKey(F("txEnPin")))
+  {
+    customConf.TX_EN = doc["txEnPin"];
   }
 }
 
@@ -757,6 +818,9 @@ void ConfigManager::parseModemStartup()
       status.modeminfo.filter[i] = 0;
   }
 
+  m.freqOffset = doc["f.offset"];
+  m.freqOffset /= 1000000; 
+
   if (Radio::getInstance().isReady())
     Radio::getInstance().begin();
 }
@@ -800,6 +864,5 @@ bool ConfigManager::parseBoardTemplate(board_t &board)
     board.TX_EN = doc["TXEN"];
   else
     board.TX_EN = UNUSED;
-
   return true;
 }

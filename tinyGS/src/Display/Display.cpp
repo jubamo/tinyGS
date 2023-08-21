@@ -225,8 +225,17 @@ void drawFrame3(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
     display->drawString(128 + x,  23 + y, String(status.modeminfo.freqDev)+ "/" + String(status.modeminfo.bw)+ "kHz");
     display->drawString(128 + x,  34 + y, String(status.modeminfo.bitrate)+ "kbps");
   }
+  if (status.vbat != 0.0)
+  {
+      display->setTextAlignment(TEXT_ALIGN_RIGHT);
+      display->drawString(128 + x, 45 + y, "Volt: " + String(status.vbat) + "V");
+  }
+  if (ConfigManager::getInstance().getSetPPM() != 0) 
+  {   
+      display->setTextAlignment(TEXT_ALIGN_LEFT);
+      display->drawString(x, 45 + y, "Corr.: " + String(ConfigManager::getInstance().getSetPPM()) + "PPM");
+  }
 }
-
 void drawFrame4(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y)
 {
   drawRemoteFrame(display, state, x, y, 1);

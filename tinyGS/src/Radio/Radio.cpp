@@ -35,8 +35,8 @@
 bool received = false;
 bool eInterrupt = true;
 bool noisyInterrupt = false;
-
 bool allow_decode=true;
+String chip = "xxxxxx";
 
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
@@ -49,40 +49,45 @@ Radio::Radio()
 
 void Radio::init()
 {
-  Log::console(PSTR("[SX12xx] Initializing ... "));
   board_t board;
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
 
   spi.begin(board.L_SCK, board.L_MISO, board.L_MOSI, board.L_NSS);
 
-  if (board.L_radio == 1)
-  {
-    radioHal = new RadioHal<SX1278>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-  }
-  else if (board.L_radio == 2)
-  {
-    radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-  }
-  else if (board.L_radio == 5)
-  {
-    radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-  }
-  else if (board.L_radio == 6)
-  {
-    radioHal = new RadioHal<SX1262>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-  }
-  else if (board.L_radio == 8)
-  {
-    radioHal = new RadioHal<SX1280>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-  }
+  switch (board.L_radio) {
+        case 1: 
+            chip = "SX1278";
+            radioHal = new RadioHal<SX1278>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            break;
+        case 2: 
+            chip = "SX1276";
+            radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            break;
+        case 5:
+            chip = "SX1268";
+            radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            break;
+        case 6:
+            chip = "SX1262";
+            radioHal = new RadioHal<SX1262>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            break;
+        case 8:
+            chip = "SX1280";
+            radioHal = new RadioHal<SX1280>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            break;
+        default:
+            Log::console(PSTR("[??????] Unknown radio type (%d), please select a valid type"),board.L_radio);
+            return;                  
+        } 
 
   if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
   {
-    radioHal->setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
-  }
-
+    radioHal -> setRfSwitchPins(board.RX_EN, board.TX_EN);
+    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, board.RX_EN, board.TX_EN );
+   }
+  else
+    Log::console(PSTR("Initializing radio %s ... "),chip);
   begin();
 }
 
@@ -97,9 +102,10 @@ int16_t Radio::begin()
 
   if (m.modem_mode == "LoRa")
   {
+    Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
     if (m.frequency != 0) 
     {
-      CHECK_ERROR(radioHal->begin(m.frequency + m.freqOffset, m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
+      CHECK_ERROR(radioHal->begin(((m.frequency + m.freqOffset) * ConfigManager::getInstance().getXtalFactor()), m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
       if (m.fldro == 2)
         radioHal->autoLDRO();
       else
@@ -114,7 +120,8 @@ int16_t Radio::begin()
   }
   else
   {
-    CHECK_ERROR(radioHal->beginFSK(m.frequency + m.freqOffset, m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
+    Log::console(PSTR("[%s] %19s (Fr:%.3f, BW:%3.2f, BR:%2.2f, Dev:%2.2f, Off:%.0f)"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
+    CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * ConfigManager::getInstance().getXtalFactor()), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
     if (m.len!=0) CHECK_ERROR(radioHal->fixedPacketLengthMode(m.len));
@@ -127,8 +134,7 @@ int16_t Radio::begin()
   // attach the ISR to radio interrupt
   radioHal->setDio0Action(setFlag);
   // start listening for LoRa packets
-  Log::console(PSTR("[SX12x8] Starting to listen to %s"), m.satellite);
-  CHECK_ERROR(radioHal->startReceive());
+   CHECK_ERROR(radioHal->startReceive());
   status.modeminfo.currentRssi = radioHal->getRSSI(false,true);
 
   status.radio_ready = true;
@@ -250,7 +256,25 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[SX12x8] RSSI:\t\t%f dBm\n[SX12x8] SNR:\t\t%f dB\n[SX12x8] Frequency error:\t%f Hz"), status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror);
+   Log::console(PSTR("[%s] RSSI: %.2f dBm, SNR: %.2f dB, Freq. error: %.0f hz -> %.0f PPM"), chip, status.lastPacketInfo.rssi, 
+   status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror, - (round(status.lastPacketInfo.frequencyerror / status.modeminfo.frequency )));
+
+  if (ConfigManager::getInstance().getautooffset())
+  {
+    board_t board;
+    if (!ConfigManager::getInstance().getBoardConfig(board))
+      return -1;
+
+    ModemInfo &m = status.modeminfo;
+
+  /* if ((newPacketInfo.frequencyerror > 5000) || (newPacketInfo.frequencyerror < -7000))
+     m.freqOffset -= (newPacketInfo.frequencyerror / 900000);
+       */
+    m.freqOffset -= (newPacketInfo.frequencyerror / 1000000); 
+
+    if (Radio::getInstance().isReady())
+      Radio::getInstance().begin();
+    } 
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
@@ -399,19 +423,19 @@ uint8_t Radio::listen()
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[SX12x8] CRC error! Data cannot be retrieved"));
+    Log::console(PSTR("[%s] CRC error! Data cannot be retrieved"), chip);
     return 2;
   }
   else if (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[SX12x8] Damaged header! Data cannot be retrieved"));
+    Log::console(PSTR("[%s] Damaged header! Data cannot be retrieved"), chip);
     return 2;
   }
   else
   {
     // some other error occurred
-    Log::console(PSTR("[SX12x8] Failed, code %d"), state);
+    Log::console(PSTR("[%s] Failed, code %d"), chip, state);
     return 3;
   }
 }
@@ -442,13 +466,13 @@ int16_t Radio::remote_freq(char *payload, size_t payload_len)
   if (board.L_radio)
   {
     ((SX1278 *)lora)->sleep(); // sleep mandatory if FastHop isn't ON.
-    state = ((SX1278 *)lora)->setFrequency(frequency + status.modeminfo.freqOffset);
+    state = ((SX1278 *)lora)->setFrequency((frequency + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor());
     ((SX1278 *)lora)->startReceive();
-  }
+   }
   else
   {
     ((SX1268 *)lora)->sleep();
-    state = ((SX1268 *)lora)->setFrequency(frequency + status.modeminfo.freqOffset);
+    state = ((SX1268 *)lora)->setFrequency((frequency + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor());
     ((SX1268 *)lora)->startReceive();
   }
 
@@ -466,7 +490,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   status.modeminfo.freqOffset = frequency_offset / 1000000;
   status.radio_ready = false;
   CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
-  CHECK_ERROR(radioHal->setFrequency(status.modeminfo.frequency+status.modeminfo.freqOffset)); 
+  CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor())); 
   CHECK_ERROR(radioHal->startReceive()); 
   status.radio_ready = true;
   return RADIOLIB_ERR_NONE;
@@ -722,7 +746,7 @@ int16_t Radio::remote_begin_lora(char *payload, size_t payload_len)
   if (board.L_radio)
   {
     ((SX1278 *)lora)->sleep(); // sleep mandatory if FastHop isn't ON.
-    state = ((SX1278 *)lora)->begin(freq + status.modeminfo.freqOffset, bw, sf, cr, syncWord78, power, preambleLength, gain);
+    state = ((SX1278 *)lora)->begin((freq + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor(), bw, sf, cr, syncWord78, power, preambleLength, gain);
     ((SX1278 *)lora)->startReceive();
     ((SX1278 *)lora)->setPacketReceivedAction(setFlag);
   }
@@ -731,7 +755,7 @@ int16_t Radio::remote_begin_lora(char *payload, size_t payload_len)
     board_t board;
     if (!ConfigManager::getInstance().getBoardConfig(board))
       return -1;
-    state = ((SX1268 *)lora)->begin(freq + status.modeminfo.freqOffset, bw, sf, cr, syncWord68, power, preambleLength, board.L_TCXO_V);
+    state = ((SX1268 *)lora)->begin((freq + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor(), bw, sf, cr, syncWord68, power, preambleLength, board.L_TCXO_V);
     ((SX1268 *)lora)->startReceive();
     ((SX1268 *)lora)->setPacketReceivedAction(setFlag);
   }
@@ -774,7 +798,7 @@ int16_t Radio::remote_begin_fsk(char *payload, size_t payload_len)
     return -1;
   if (board.L_radio)
   {
-    state = ((SX1278 *)lora)->beginFSK(freq + status.modeminfo.freqOffset, br, freqDev, rxBw, power, preambleLength, (ook == 255));
+    state = ((SX1278 *)lora)->beginFSK((freq + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor(), br, freqDev, rxBw, power, preambleLength, (ook == 255));
     ((SX1278 *)lora)->setDataShaping(ook);
     ((SX1278 *)lora)->startReceive();
     ((SX1278 *)lora)->setPacketReceivedAction(setFlag);
@@ -788,7 +812,7 @@ int16_t Radio::remote_begin_fsk(char *payload, size_t payload_len)
     board_t board;
     if (!ConfigManager::getInstance().getBoardConfig(board))
       return -1;
-    state = ((SX1268 *)lora)->beginFSK(freq + status.modeminfo.freqOffset, br, freqDev, rxBw, power, preambleLength, board.L_TCXO_V);
+    state = ((SX1268 *)lora)->beginFSK((freq + status.modeminfo.freqOffset) * ConfigManager::getInstance().getXtalFactor(), br, freqDev, rxBw, power, preambleLength, board.L_TCXO_V);
     ((SX1268 *)lora)->setDataShaping(ook);
     ((SX1268 *)lora)->startReceive();
     ((SX1268 *)lora)->setPacketReceivedAction(setFlag);

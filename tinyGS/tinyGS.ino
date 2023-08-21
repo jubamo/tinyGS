@@ -48,7 +48,7 @@
     Github: https://github.com/G4lile0/tinyGS
     Main community chat: https://t.me/joinchat/DmYSElZahiJGwHX6jCzB3Q
 
-    In order to onfigure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
+    In order to configure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
     Data channel (station status and received packets): https://t.me/tinyGS_Telemetry
     Test channel (simulator packets received by test groundstations): https://t.me/TinyGS_Test
 
@@ -101,6 +101,7 @@ Status status;
 void printControls();
 void switchTestmode();
 void checkButton();
+void checkBattery(void);
 void setupNTP();
 
 void configured()
@@ -113,6 +114,7 @@ void configured()
 void wifiConnected()
 {
   configManager.setWifiConnectionCallback(NULL);
+  Log::console(PSTR("Local ip address: %s "), WiFi.localIP().toString().c_str());
   setupNTP();
   displayShowConnected();
   arduino_ota_setup();
@@ -134,7 +136,8 @@ void setup()
   delay(100);
 
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
-  Log::console(PSTR("Chip  %s - %d"),  ESP.getChipModel(),ESP.getChipRevision());
+  Log::console(PSTR("Chip  %s - (Rev. %d)"),  ESP.getChipModel(),ESP.getChipRevision());
+  
   configManager.setWifiConnectionCallback(wifiConnected);
   configManager.setConfiguredCallback(configured);
   configManager.init();
@@ -205,6 +208,8 @@ void loop() {
     return;
   }
 
+  checkBattery();
+
   // connected
 
   mqtt.loop();
@@ -250,6 +255,28 @@ void checkButton()
   }
 }
 
+void checkBattery(void)
+{
+  #define BATTERY_INTERVAL 1000
+  static unsigned long lastReadTime = 0; 
+  static bool initial = true;
+  if (millis() - lastReadTime > BATTERY_INTERVAL) {
+    lastReadTime = millis();
+    uint8_t vBattIn = ConfigManager::getInstance().getVbattAin();
+    float scale = ConfigManager::getInstance().getVbattScale();
+    //Log::console(PSTR("pin %d   scala %0.2f"), vBattIn, scale);
+    if ((vBattIn != UNUSED) && (scale != 0)) {
+   float temp;
+        float vbatMeas = (float)analogReadMilliVolts(vBattIn) *scale * 0.001f;
+        if (initial) {
+            status.vbat = vbatMeas;
+            initial  = false;
+          } 
+        status.vbat = (0.75 * status.vbat) + (0.25 * vbatMeas);
+    }
+  }
+} 
+
 void handleSerial()
 {
   if(Serial.available())
@@ -285,7 +312,7 @@ void handleSerial()
         }
 
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20*1000)
+        if (millis() - lastTestPacketTime < 2*1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
           break;
