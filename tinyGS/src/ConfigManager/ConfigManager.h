@@ -71,7 +71,7 @@ enum boardNum
  #if CONFIG_IDF_TARGET_ESP32S3
   HELTEC_LORA32_V3 = 0,
   ESP32S3_SX1278_LF,
- #else  
+ #else
   HELTEC_V1_LF = 0,
   HELTEC_V1_HF,
   HELTEC_V2_LF,
