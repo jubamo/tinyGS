@@ -260,21 +260,19 @@ void checkBattery(void)
   #define BATTERY_INTERVAL 1000
   static unsigned long lastReadTime = 0; 
   static bool initial = true;
-  int i;
-  board_t board;
-
   if (millis() - lastReadTime > BATTERY_INTERVAL) {
     lastReadTime = millis();
-    if (configManager.getBoardConfig(board)) {
-      if (board.VBAT_AIN != UNUSED) {
+    uint8_t vBattIn = ConfigManager::getInstance().getVbattAin();
+    float scale = ConfigManager::getInstance().getVbattScale();
+    //Log::console(PSTR("pin %d   scala %0.2f"), vBattIn, scale);
+    if ((vBattIn != UNUSED) && (scale != 0)) {
    float temp;
-        float vbatMeas = (float)analogReadMilliVolts(board.VBAT_AIN) * board.VBAT_SCALE * 0.001f;
+        float vbatMeas = (float)analogReadMilliVolts(vBattIn) *scale * 0.001f;
         if (initial) {
             status.vbat = vbatMeas;
             initial  = false;
           } 
         status.vbat = (0.75 * status.vbat) + (0.25 * vbatMeas);
-      }
     }
   }
 } 

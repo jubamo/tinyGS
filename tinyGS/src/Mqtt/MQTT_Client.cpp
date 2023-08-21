@@ -322,7 +322,8 @@ void MQTT_Client::sendAdvParameters()
   doc["adv_prm"].set(configManager.getAvancedConfig());
   char buffer[512];
   serializeJson(doc, buffer);
-  Log::debug(PSTR("%s"), buffer);
+  //Log::debug(PSTR("%s"), buffer);
+  Log::console(PSTR("Envio de advanced parameters  %s"), buffer);
   publish(buildTopic(teleTopic, topicGet_adv_prm).c_str(), buffer, false);
 }
 
