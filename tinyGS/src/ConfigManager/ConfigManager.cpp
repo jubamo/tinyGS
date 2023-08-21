@@ -585,6 +585,7 @@ void ConfigManager::boardDetection()
     itoa(LILYGO_T3_V1_6_1_LF, board, 10);
     return;
   };
+ #endif
 
   for (uint8_t ite = 0; ite < ((sizeof(boards) / sizeof(boards[0]))); ite++)
   {
