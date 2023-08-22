@@ -114,9 +114,7 @@ typedef struct
   uint8_t L_MOSI;
   uint8_t L_SCK;
   float L_TCXO_V;
-  uint8_t RX_EN;
-  uint8_t TX_EN;
- 
+
   String BOARD;
 } board_t;
 
@@ -136,8 +134,8 @@ typedef struct
   bool autoOffset = false;
   uint8_t VBAT_AIN = UNUSED;     /* GPIO pin for VBAT monitoring */
   float VBAT_SCALE = 0;     /* potential divider between battery and GPIO pin */
-  uint8_t RX_EN;
-  uint8_t TX_EN;
+  uint8_t RX_EN = UNUSED; 
+  uint8_t TX_EN = UNUSED; 
 } CustomConfig;
 
 class ConfigManager : public IotWebConf2
@@ -204,6 +202,8 @@ public:
   float getXtalFactor() { return 1 + customConf.fCorrectPPM / 1e6; }
   uint8_t getVbattAin() { return customConf.VBAT_AIN; }
   float getVbattScale() { return customConf.VBAT_SCALE; }
+  uint8_t getRxEnPin() { return customConf.RX_EN; }
+  uint8_t getTxEnPin() { return customConf.TX_EN; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;

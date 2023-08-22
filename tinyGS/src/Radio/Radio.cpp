@@ -81,11 +81,11 @@ void Radio::init()
             return;                  
         } 
 
-  if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
+    if (ConfigManager::getInstance().getRxEnPin() != UNUSED && ConfigManager::getInstance().getTxEnPin() != UNUSED)
   {
-    radioHal -> setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, board.RX_EN, board.TX_EN );
-   }
+    radioHal -> setRfSwitchPins(ConfigManager::getInstance().getTxEnPin() , ConfigManager::getInstance().getTxEnPin() );
+    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, ConfigManager::getInstance().getRxEnPin() , ConfigManager::getInstance().getTxEnPin()  );
+  }  
   else
     Log::console(PSTR("Initializing radio %s ... "),chip);
   begin();
