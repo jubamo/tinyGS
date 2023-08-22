@@ -215,18 +215,18 @@ void ConfigManager::handleDashboard()
   s += "<tr><td>Name </td><td>" + String(getThingName()) + "</td></tr>";
   s += "<tr><td>Version </td><td>" + String(status.version) + "</td></tr>";
   s += "<tr><td>MQTT Server </td><td>" + String(status.mqtt_connected ? "<span class='G'>CONNECTED</span>" : "<span class='R'>NOT CONNECTED</span>") + "</td></tr>";
-  if (WiFi.isConnected() ){
+  if ( WiFi.isConnected() )
       s += "<tr><td>WiFi RSSI </td><td>" + String(WiFi.RSSI()) + "</td></tr>";
-  }
-
   s += "<tr><td>Radio </td><td>" + String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + "</td></tr>";
   s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>"; 
   if (status.vbat != 0.0)
     s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>"; 
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
-  if (customConf.fCorrectPPM  != 0)
+  if (customConf.fCorrectPPM  != 0) 
     s += "<tr><td>Correction PPM </td><td>" + String(customConf.fCorrectPPM ) + "</td></tr>";
+    else
+    s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
   s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
@@ -380,7 +380,9 @@ void ConfigManager::handleRefreshWorldmap()
 
   // modem configuration (for modemconfig id table data)
   if (customConf.fCorrectPPM != 0) 
-    data_string += String(customConf.fCorrectPPM) + "," ;             
+    data_string += String(customConf.fCorrectPPM) + "," ; 
+  else 
+    data_string += String("  ") + "," ;       
   data_string += String(status.modeminfo.satellite) + "," +
                  String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + ",";

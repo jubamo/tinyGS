@@ -259,12 +259,13 @@ void checkButton()
 void checkBattery(void)
 {
   #define BATTERY_INTERVAL 1000
+  #define scale ConfigManager::getInstance().getVbattScale()
+  #define vBattIn ConfigManager::getInstance().getVbattAin()
+
   static unsigned long lastReadTime = 0; 
   static bool initial = true;
   if (millis() - lastReadTime > BATTERY_INTERVAL) {
-    lastReadTime = millis();
-    uint8_t vBattIn = ConfigManager::getInstance().getVbattAin();
-    float scale = ConfigManager::getInstance().getVbattScale();
+      lastReadTime = millis();
     if ((vBattIn != UNUSED) && (scale != 0)) {
    float temp;
         float vbatMeas = (float)analogReadMilliVolts(vBattIn) *scale * 0.001f;
