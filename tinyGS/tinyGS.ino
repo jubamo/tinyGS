@@ -255,6 +255,7 @@ void checkButton()
   }
 }
 
+//https://github.com/mdkendall/tinyGS/commit/5d8685477c3b2fae7b81cf590864833f7bc5d6c8
 void checkBattery(void)
 {
   #define BATTERY_INTERVAL 1000
@@ -264,7 +265,6 @@ void checkBattery(void)
     lastReadTime = millis();
     uint8_t vBattIn = ConfigManager::getInstance().getVbattAin();
     float scale = ConfigManager::getInstance().getVbattScale();
-    //Log::console(PSTR("pin %d   scala %0.2f"), vBattIn, scale);
     if ((vBattIn != UNUSED) && (scale != 0)) {
    float temp;
         float vbatMeas = (float)analogReadMilliVolts(vBattIn) *scale * 0.001f;
