@@ -37,7 +37,7 @@ bool eInterrupt = true;
 bool noisyInterrupt = false;
 bool allow_decode=true;
 String chip = "xxxxxx";
-
+ 
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
   : spi(HSPI)
@@ -50,6 +50,9 @@ Radio::Radio()
 void Radio::init()
 {
   board_t board;
+  uint8_t rxEnPin = ConfigManager::getInstance().getRxEnPin();
+  uint8_t txEnPin = ConfigManager::getInstance().getTxEnPin(); 
+
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
 
@@ -80,11 +83,11 @@ void Radio::init()
             Log::console(PSTR("[??????] Unknown radio type (%d), please select a valid type"),board.L_radio);
             return;                  
         } 
-
-    if (ConfigManager::getInstance().getRxEnPin() != UNUSED && ConfigManager::getInstance().getTxEnPin() != UNUSED)
+   
+    if (rxEnPin != UNUSED && txEnPin != UNUSED)
   {
-    radioHal -> setRfSwitchPins(ConfigManager::getInstance().getTxEnPin() , ConfigManager::getInstance().getTxEnPin() );
-    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, ConfigManager::getInstance().getRxEnPin() , ConfigManager::getInstance().getTxEnPin()  );
+    radioHal -> setRfSwitchPins(rxEnPin , txEnPin );
+    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, rxEnPin, txEnPin );
   }  
   else
     Log::console(PSTR("Initializing radio %s ... "),chip);
