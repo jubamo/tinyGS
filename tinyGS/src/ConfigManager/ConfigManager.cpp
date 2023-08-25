@@ -275,6 +275,33 @@ void ConfigManager::handleRefreshConsole()
   uint32_t counter = 0;
 
   String svalue = server.arg("c1");
+
+
+  
+/* else if (svalue.charAt(0) == 'f') 
+    {
+      if (svalue.length() > 1)
+      {
+        int hz_offset = svalue.substring(1).toInt();
+        status.modeminfo.freqOffset = 0.000001 * hz_offset;
+        Radio &radio = Radio::getInstance();
+        radio.setfreq();
+      }
+*/
+      
+    if (strcmp(svalue.c_str(), "+") == 0)
+    {  
+      status.modeminfo.freqOffset += 0.0015;
+      Radio::getInstance().begin();
+      return;
+    }
+    if (strcmp(svalue.c_str(), "-") == 0)
+    {
+      status.modeminfo.freqOffset -= 0.0015;
+      Radio::getInstance().begin();
+      return;   
+    }
+    
   if (svalue.length())
   {
     Log::console(PSTR("COMMAND: %s"), svalue.c_str());
@@ -634,6 +661,8 @@ void ConfigManager::configSavedCallback()
   if (!remoteSave) // remote save is set to true when saving programatically, it's false if the callback comes from web
   {
     forceApMode(false);
+    parseAdvancedConf();
+    parseCustomConf();
     parseModemStartup();
     MQTT_Client::getInstance().scheduleRestart();
  
@@ -671,8 +700,6 @@ void ConfigManager::configSavedCallback()
     }
   }
 
-  parseAdvancedConf();
-  parseCustomConf();
   remoteSave = false; // reset to false so web callbacks are received as false
 
 }
@@ -711,17 +738,14 @@ void ConfigManager::parseCustomConf()
 {
   if (!strlen(customConfig))
     return;
-
+  static bool initialRead = true;
   size_t size = 512;
   DynamicJsonDocument doc(size);
   deserializeJson(doc, (const char *)customConfig);
 
- if ((doc.containsKey(F("fCorrectPPM"))) && (!(customConf.fCorrectPPM == doc["fCorrectPPM"]))) 
+  if (doc.containsKey(F("fCorrectPPM"))) //&& (!(customConf.fCorrectPPM == doc["fCorrectPPM"]))) 
   {
     customConf.fCorrectPPM = doc["fCorrectPPM"];
-    Log::console(PSTR("Crystal frequency correction: %d PPM,  Factor: %1.6f"), customConf.fCorrectPPM, getXtalFactor());
-    if (Radio::getInstance().isReady())
-    Radio::getInstance().begin();
   }
 
   if (doc.containsKey(F("tPublish")))
@@ -729,7 +753,7 @@ void ConfigManager::parseCustomConf()
     customConf.tPublish = doc["tPublish"];
   } 
 
-    if (doc.containsKey(F("autoOffset")))
+  if (doc.containsKey(F("autoOffset")))
   {  
     customConf.autoOffset = doc["autoOffset"];
   }
@@ -744,15 +768,18 @@ void ConfigManager::parseCustomConf()
     customConf.VBAT_SCALE = doc["vBattScale"];
   } 
 
-  if (doc.containsKey(F("rxEnPin")))
+  if ((doc.containsKey(F("rxEnPin")) && (customConf.RX_EN != doc["rxEnPin"])) ||
+      (doc.containsKey(F("txEnPin")) && (customConf.TX_EN != doc["txEnPin"])))
   {
     customConf.RX_EN = doc["rxEnPin"];
-  } 
-
-    if (doc.containsKey(F("txEnPin")))
-  {
     customConf.TX_EN = doc["txEnPin"];
+    if (!initialRead) 
+    {
+      ESP.restart();
+    } 
   }
+      initialRead = false;
+
 }
 
 void ConfigManager::parseModemStartup()

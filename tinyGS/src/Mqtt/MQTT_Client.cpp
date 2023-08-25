@@ -430,6 +430,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
 
   if (!strcmp(command, commandBeginp))
   {
+    status.modeminfo.freqOffset = 0;
     char buff[length + 1];
     memcpy(buff, payload, length);
     buff[length] = '\0';
@@ -461,6 +462,7 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
 
   if (!strcmp(command, commandBegine))
   {
+    status.modeminfo.freqOffset = 0;
     size_t size = JSON_ARRAY_SIZE(10) + 10 * JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(16) + JSON_ARRAY_SIZE(8) + JSON_ARRAY_SIZE(8) + 64;
     DynamicJsonDocument doc(size);
     DeserializationError error = deserializeJson(doc, payload, length);
