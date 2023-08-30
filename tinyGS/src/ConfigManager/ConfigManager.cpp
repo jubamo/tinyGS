@@ -226,10 +226,10 @@ void ConfigManager::handleDashboard()
   if (customConf.fCorrectPPM  != 0) 
     s += "<tr><td>Correction PPM </td><td>" + String(customConf.fCorrectPPM ) + "</td></tr>";
     else
-    s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
+      s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
-  s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
+  s += "<tr><td>Frequency     </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
   if (status.modeminfo.modem_mode == "LoRa")
   {
     s += "<tr><td>Spreading Factor </td><td>" + String(status.modeminfo.sf) + "</td></tr>";
@@ -274,37 +274,13 @@ void ConfigManager::handleRefreshConsole()
 
   uint32_t counter = 0;
 
+
+
   String svalue = server.arg("c1");
 
-
-  
-/* else if (svalue.charAt(0) == 'f') 
-    {
-      if (svalue.length() > 1)
-      {
-        int hz_offset = svalue.substring(1).toInt();
-        status.modeminfo.freqOffset = 0.000001 * hz_offset;
-        Radio &radio = Radio::getInstance();
-        radio.setfreq();
-      }
-*/
-      
-    if (strcmp(svalue.c_str(), "+") == 0)
-    {  
-      status.modeminfo.freqOffset += 0.0015;
-      Radio::getInstance().begin();
-      return;
-    }
-    if (strcmp(svalue.c_str(), "-") == 0)
-    {
-      status.modeminfo.freqOffset -= 0.0015;
-      Radio::getInstance().begin();
-      return;   
-    }
-    
   if (svalue.length())
   {
-    Log::console(PSTR("COMMAND: %s"), svalue.c_str());
+   // Log::console(PSTR("COMMAND: %s"), svalue.c_str());
 
     if (strcmp(svalue.c_str(), "p") == 0)
     {
@@ -328,6 +304,33 @@ void ConfigManager::handleRefreshConsole()
         }
       }
     }
+
+    else if  ((svalue.charAt(0) == 'f') && (svalue.length() > 1))
+        {
+          int hz_offset = svalue.substring(1).toInt();
+          status.modeminfo.freqOffset = 0.000001 * hz_offset;
+
+          if (Radio::getInstance().SetFreqOffset())
+            {
+              Log::debug(PSTR("Error ocurred during batch config!!"));         
+            }
+        }
+      //Log::console(PSTR("%s"), F("Value not valid!"));
+    
+    else if (strcmp(svalue.c_str(), "+") == 0)
+        {  
+          status.modeminfo.freqOffset += 0.0015;
+          Radio::getInstance().SetFreqOffset();
+          //return;
+        }
+      
+     else if (strcmp(svalue.c_str(), "-") == 0)
+           {
+            status.modeminfo.freqOffset -= 0.0015;
+           Radio::getInstance().SetFreqOffset();
+          //return;   
+          }
+         
     else
     {
       Log::console(PSTR("%s"), F("Command still not supported in web serial console!"));
@@ -409,7 +412,7 @@ void ConfigManager::handleRefreshWorldmap()
   if (customConf.fCorrectPPM != 0) 
     data_string += String(customConf.fCorrectPPM) + "," ; 
   else 
-    data_string += String("  ") + "," ;       
+    data_string += String("  ") + "," ;      
   data_string += String(status.modeminfo.satellite) + "," +
                  String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + ",";
