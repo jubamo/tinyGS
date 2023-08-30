@@ -229,7 +229,7 @@ void ConfigManager::handleDashboard()
       s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
   s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
-  s += "<tr><td>Frequency     </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
+  s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
   if (status.modeminfo.modem_mode == "LoRa")
   {
     s += "<tr><td>Spreading Factor </td><td>" + String(status.modeminfo.sf) + "</td></tr>";

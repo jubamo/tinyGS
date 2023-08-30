@@ -502,40 +502,9 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   return RADIOLIB_ERR_NONE;
 }
 
-/*int16_t Radio::SetFreqOffset()
-{
-float xtalCorrFactor = ConfigManager::getInstance().getXtalFactor();
- Log::console(PSTR("[%s] New OffSet  %.0f Hz"), chip, 1000000 * status.modeminfo.freqOffset);
-
- int16_t state = 0;
-  board_t board;
-
-  if (!ConfigManager::getInstance().getBoardConfig(board))
-    return -1;
-
-  if (board.L_radio)
-  {
-    ((SX1278 *)lora)->sleep(); // sleep mandatory if FastHop isn't ON.
-    state = ((SX1278 *)lora)->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor);
-    ((SX1278 *)lora)->startReceive();
-   }
-  else
-  {
-    ((SX1268 *)lora)->sleep();
-    state = ((SX1268 *)lora)->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor);
-    ((SX1268 *)lora)->startReceive();
-  }
-
-  readState(state);
- // if (state == RADIOLIB_ERR_NONE)
-   // status.modeminfo.frequency = frequency;
-  return state;
-}*/
-
 int16_t Radio::SetFreqOffset()
 {
   float xtalCorrFactor = ConfigManager::getInstance().getXtalFactor();
- //Log::console(PSTR("[%s] New OffSet  %.0f Hz"), chip, 1000000 * status.modeminfo.freqOffset);
   status.radio_ready = false;
   CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
   CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor)); 
