@@ -260,7 +260,7 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-   Log::console(PSTR("[%s] RSSI:%.2fdBm, SNR:%.2fdB, Fq. Err:%.0fhz %.0fPPM, Packet:%ubytes"), 
+   Log::console(PSTR("[%s] RSSI:%.2f dBm, SNR:%.2f dB, Fq.Err:%.0f Hz, %.0f PPM, Packet:%u bytes"), 
    chip, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror,
     - (round(status.lastPacketInfo.frequencyerror / status.modeminfo.frequency )), respLen );
 

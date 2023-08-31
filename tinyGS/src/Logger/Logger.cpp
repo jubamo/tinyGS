@@ -70,11 +70,11 @@ void Log::AddLog(Log::LoggingLevels level, const char* logData)
   if (level > Log::logLevel)
     return;
 
-  char timeStr[10];  // "13:45:21 "
+  char timeStr[20];  // "13:45:21 "
   time_t currentTime = time (NULL);
   if (currentTime > 0) {
       struct tm *timeinfo = localtime (&currentTime);
-      snprintf_P (timeStr, sizeof (timeStr), "%02d:%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+      snprintf_P (timeStr, sizeof (timeStr), "%02d/%02d %02d:%02d:%02d ",timeinfo->tm_mday, (1 + timeinfo->tm_mon), timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
   }
   else {
       timeStr[0] = '\0';
