@@ -70,7 +70,7 @@ void Log::AddLog(Log::LoggingLevels level, const char* logData)
   if (level > Log::logLevel)
     return;
 
-  char timeStr[20];  // "13:45:21 "
+  char timeStr[16];  // "13:45:21 "
   time_t currentTime = time (NULL);
   if (currentTime > 0) {
       struct tm *timeinfo = localtime (&currentTime);
