@@ -85,7 +85,7 @@ void Log::AddLog(Log::LoggingLevels level, const char* logData)
   // Delimited, zero-terminated buffer of log lines.
   // Each entry has this format: [index][log data]['\1']
   while (logIdx == log[0] ||  // If log already holds the next index, remove it
-          strlen(log) + strlen(logData) + 13 > MAX_LOG_SIZE)  // 13 = idx + time + '\1' + '\0'
+          strlen(log) + strlen(logData) + 19 > MAX_LOG_SIZE)  // 13 = idx + time + '\1' + '\0'
   {
     char* it = log;
     it++;                                // Skip web_log_index
