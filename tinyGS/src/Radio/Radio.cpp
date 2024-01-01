@@ -65,7 +65,7 @@ void Radio::init()
             break;
         case 2: 
             chip = "SX1276";
-            radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+            radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
             break;
         case 5:
             chip = "SX1268";
