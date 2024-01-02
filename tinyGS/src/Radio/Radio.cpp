@@ -53,9 +53,10 @@ void Radio::init()
   uint8_t rxEnPin = ConfigManager::getInstance().getRxEnPin();
   uint8_t txEnPin = ConfigManager::getInstance().getTxEnPin(); 
 
+ Log::console(PSTR("Initializing radio ... "));
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
-
+ 
   spi.begin(board.L_SCK, board.L_MISO, board.L_MOSI, board.L_NSS);
 
   switch (board.L_radio) {
@@ -87,10 +88,10 @@ void Radio::init()
     if (rxEnPin != UNUSED && txEnPin != UNUSED)
   {
     radioHal -> setRfSwitchPins(rxEnPin , txEnPin );
-    Log::console(PSTR("Initializing radio %s ... Selected: RxEn-> %d, TxEn-> %d"),chip, rxEnPin, txEnPin );
+    Log::console(PSTR("Radio %s Initialized.  Selected: RxEn-> %d, TxEn-> %d"),chip, rxEnPin, txEnPin );
   }  
   else
-    Log::console(PSTR("Initializing radio %s ... "),chip);
+    Log::console(PSTR("Radio %s Initialized. "),chip);
   begin();
 }
 
