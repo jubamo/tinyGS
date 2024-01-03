@@ -1,39 +1,4 @@
-<p align="center">
-<img src="/doc/images/TinyGS_logo.png" width="600">
-</p>
 
-TinyGS is an open network of Ground Stations distributed around the world to receive and operate LoRa satellites, weather probes and other flying objects, using cheap and versatile modules.
-
-# Hardware
-
-This project is based on ESP32 boards and currently it is compatible with sx126x and sx127x LoRa módules but we plan to support more radio módules in the future.
-
-Currently in beta, we officially support the following proven LoRa boards:
-
--  **433MHz HELTEC LORA32 V3 SX1262**
--  **Custom ESP32-S3 433MHz SX1278**
--  **433MHz HELTEC WiFi LoRA 32 V1**
--  **863-928MHz HELTEC WiFi LoRA 32 V1**
--  **433MHz HELTEC WiFi LoRA 32 V2**
--  **863-928MHz HELTEC WiFi LoRA 32 V2**
--  **433Mhz  TTGO LoRa 32 v1** 
--  **868-915MHz TTGO LoRa 32 v1**
--  **433MHz TTGO LoRA 32 v2**
--  **868-915MHz TTGO LoRA 32 v2**
--  **433MHz T-BEAM + OLED**
--  **868-915MHz T-BEAM + OLED**
--  **Custom ESP32 Wroom + SX126x (Crystal)**
--  **TTGO LoRa 32 V2 Modified with module SX126x (crystal)**
--  **Custom ESP32 Wroom + SX126x DRF1268T (TCX0) (5, 2, 26, 13)**
--  **Custom ESP32 Wroom + SX126x DRF1268T (TCX0) (5, 26, 14, 12)**
--  **433MHz T-BEAM V1.0 + OLED**
--  **433MHz FOSSA 1W Ground Station**
--  **868-915MHz FOSSA 1W Ground Station**
--  **2.4GHz ESP32 + SX1280**
--  **868-915MHzT-BEAM V1.0 + OLED**
--  **433MHz LILYGO T3_V1.6.1**
- 
-However, any ESP32 board with sx126x or sx127x módule can be configured using templates. You can find more info about them [here](https://github.com/G4lile0/tinyGS/wiki/Board-Templates).
 
 # Install
 The first time you flash your board you can use the [one click uploader](https://github.com/G4lile0/tinyGS/wiki/Quick-Start) available for Linux, Windows and Mac. You can find instructions [here](https://github.com/G4lile0/tinyGS/wiki/Quick-Start).
