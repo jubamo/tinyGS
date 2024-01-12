@@ -107,7 +107,7 @@ int16_t Radio::begin()
 
   if (m.modem_mode == "LoRa")
   {
-    Log::console(PSTR("[%s] %19s (Frq:%.3f, BW:%3.2f, SF:%2d, CR:%d, Off:%.0f) kx:%0.6f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
+    Log::console(PSTR("[%s-LoRa] %19s (Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
     if (m.frequency != 0) 
     {
       CHECK_ERROR(radioHal->begin(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
@@ -125,7 +125,7 @@ int16_t Radio::begin()
   }
   else
   {
-    Log::console(PSTR("[%s] %19s (Fq:%.3f, BW:%3.2f, BR:%2.2f, Dev:%2.2f, Off:%.0f) kx:%0.6f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
+    Log::console(PSTR("[%s-FSK] %19s (Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
     CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
