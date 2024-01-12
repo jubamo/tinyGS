@@ -94,7 +94,7 @@ void MQTT_Client::loop()
     else
     {
       StaticJsonDocument<128> doc;
-      doc["Vbat"] = status.vbat;
+      doc["Vbat"] =  voltage();//status.vbat;
       doc["Mem"] = ESP.getFreeHeap();
       doc["RSSI"] =WiFi.RSSI();
       doc["radio"]= status.radio_error;
@@ -885,7 +885,7 @@ void MQTT_Client::begin()
 }
 
 
-/*
+
 int MQTT_Client::voltage() {
   int medianVoltage;
   int length = 21;
@@ -916,4 +916,4 @@ int MQTT_Client::voltage() {
   medianVoltage = voltages[10];
   return medianVoltage;
 }
-*/
+
