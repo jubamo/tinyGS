@@ -108,7 +108,7 @@ int16_t Radio::begin()
   if (m.modem_mode == "LoRa")
   {
    // Log::console(PSTR("[%s-LoRa] %19s (Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
+    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%6.2f, SF:%2d, CR:%d, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
     if (m.frequency != 0) 
     {
       CHECK_ERROR(radioHal->begin(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
@@ -127,7 +127,7 @@ int16_t Radio::begin()
   else
   {
    // Log::console(PSTR("[%s-FSK] %19s (Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
+    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%.2f, BR:%.2f, Dev:%.2f, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
     CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
@@ -258,12 +258,43 @@ uint8_t Radio::listen()
     return 4;
   }
 
+  struct tm *timeinfo;
+  time_t currenttime = time(NULL);
+  if (currenttime < 0)
+  {
+    Log::error(PSTR("Failed to obtain time"));
+    status.lastPacketInfo.time = "";
+  }
+  else
+  {
+    // store time of the last packet received:
+    timeinfo = localtime(&currenttime);
+    String thisTime = "";
+    if (timeinfo->tm_hour < 10)
+    {
+      thisTime = thisTime + " ";
+    } // add leading space if required
+    thisTime = String(timeinfo->tm_hour) + ":";
+    if (timeinfo->tm_min < 10)
+    {
+      thisTime = thisTime + "0";
+    } // add leading zero if required
+    thisTime = thisTime + String(timeinfo->tm_min) + ":";
+    if (timeinfo->tm_sec < 10)
+    {
+      thisTime = thisTime + "0";
+    } // add leading zero if required
+    thisTime = thisTime + String(timeinfo->tm_sec);
+
+    status.lastPacketInfo.time = thisTime;
+  }
+
   status.lastPacketInfo.rssi = newPacketInfo.rssi;
   status.lastPacketInfo.snr = newPacketInfo.snr;
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-   Log::console(PSTR("[%s] RSSI:%.2f dBm, SNR:%.2f dB, Fq.Err:%.0f Hz, %.0f PPM, Packet:%u bytes"), 
+   Log::console(PSTR("[%s] RSSI:%7.2f dBm, SNR:%6.2f dB, Fq.Err:%.0f Hz, %.0f PPM, Packet:%u bytes"), 
    chip, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror,
     - (round(status.lastPacketInfo.frequencyerror / status.modeminfo.frequency )), respLen );
 
@@ -368,11 +399,12 @@ uint8_t Radio::listen()
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
+    status.lastPacketInfo.crc_error = true;
+
     // if filter is active, filter the CRC errors
     if (status.modeminfo.filter[0] == 0)
     {
       // packet was received, but is malformed
-      status.lastPacketInfo.crc_error = true;
       String error_encoded = base64::encode("Error_CRC");
       MQTT_Client::getInstance().sendRx(error_encoded, noisyInterrupt);
     }
@@ -386,37 +418,6 @@ uint8_t Radio::listen()
   }
 
   delete[] respFrame;
-
-  struct tm *timeinfo;
-  time_t currenttime = time(NULL);
-  if (currenttime < 0)
-  {
-    Log::error(PSTR("Failed to obtain time"));
-    status.lastPacketInfo.time = "";
-  }
-  else
-  {
-    // store time of the last packet received:
-    timeinfo = localtime(&currenttime);
-    String thisTime = "";
-    if (timeinfo->tm_hour < 10)
-    {
-      thisTime = thisTime + " ";
-    } // add leading space if required
-    thisTime = String(timeinfo->tm_hour) + ":";
-    if (timeinfo->tm_min < 10)
-    {
-      thisTime = thisTime + "0";
-    } // add leading zero if required
-    thisTime = thisTime + String(timeinfo->tm_min) + ":";
-    if (timeinfo->tm_sec < 10)
-    {
-      thisTime = thisTime + "0";
-    } // add leading zero if required
-    thisTime = thisTime + String(timeinfo->tm_sec);
-
-    status.lastPacketInfo.time = thisTime;
-  }
 
   noisyInterrupt = false;
 
