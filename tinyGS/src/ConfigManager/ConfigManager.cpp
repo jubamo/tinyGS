@@ -58,10 +58,10 @@ ConfigManager::ConfigManager()
   {      0x3c,        4,        15,       16,           0,        25,      2,    18,     26,     12,   UNUSED , 14,      19,     27,     5,     0.0f,   "863-928MHz HELTEC WiFi LoRA 32 V1" },  // SX1276
   {      0x3c,        4,        15,       16,           0,        25,      1,    18,     26,     35,   UNUSED , 14,      19,     27,     5,     0.0f,   "433MHz HELTEC WiFi LoRA 32 V2" },      // SX1278 @4m1g0  
   {      0x3c,        4,        15,       16,           0,        25,      2,    18,     26,     35,   UNUSED , 14,      19,     27,     5,     0.0f,   "863-928MHz HELTEC WiFi LoRA 32 V2" },  // SX1276
-  {      0x3c,        4,        15,       16,           0,         2,      1,    18,     26,   UNUSED, UNUSED , 14,      19,     27,     5,     0.0f,   "433Mhz  TTGO LoRa 32 v1"        },     // SX1278 @g4lile0 
-  {      0x3c,        4,        15,       16,           0,         2,      2,    18,     26,   UNUSED, UNUSED , 14,      19,     27,     5,     0.0f,   "868-915MHz TTGO LoRa 32 v1"        },  // SX1276
-  {      0x3c,       21,        22,     UNUSED,         0,        22,      1,    18,     26,     33,   UNUSED , 14,      19,     27,     5,     0.0f,   "433MHz TTGO LoRA 32 v2"        },      // SX1278  @TCRobotics
-  {      0x3c,       21,        22,       16,           0,        22,      2,    18,     26,     33,   UNUSED , 14,      19,     27,     5,     0.0f,   "868-915MHz TTGO LoRA 32 v2"        },  // SX1276
+  {      0x3c,        4,        15,     UNUSED,         0,         2,      1,    18,     26,   UNUSED, UNUSED , 23,      19,     27,     5,     0.0f,   "433Mhz  TTGO LoRa 32 v1"        },     // SX1278 @g4lile0 
+  {      0x3c,        4,        15,     UNUSED,         0,         2,      2,    18,     26,   UNUSED, UNUSED , 23,      19,     27,     5,     0.0f,   "868-915MHz TTGO LoRa 32 v1"        },  // SX1276
+  {      0x3c,       21,        22,     UNUSED,         0,        22,      1,    18,     26,     33,   UNUSED , 23,      19,     27,     5,     0.0f,   "433MHz TTGO LoRA 32 v2"        },      // SX1278  @TCRobotics
+  {      0x3c,       21,        22,     UNUSED,         0,        22,      2,    18,     26,     33,   UNUSED , 23,      19,     27,     5,     0.0f,   "868-915MHz TTGO LoRA 32 v2"        },  // SX1276
   {      0x3c,       21,        22,       16,          39,        22,      1,    18,     26,     33,     32,    14,      19,     27,     5,     0.0f,   "433MHz T-BEAM + OLED"        },        // SX1278
   {      0x3c,       21,        22,       16,          39,        22,      2,    18,     26,     33,     32,    14,      19,     27,     5,     0.0f,   "868-915MHz T-BEAM + OLED"        },    // SX1276
   {      0x3c,       21,        22,       16,           0,        25,      5,     5,   UNUSED,   27,     26,    14,      19,     23,    18,     0.0f,   "Custom ESP32 Wroom + SX126x (Crystal)"  }, // SX1268 @4m1g0, @lillefyr
