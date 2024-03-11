@@ -55,6 +55,9 @@ void Radio::init()
   uint8_t rxEnPin = ConfigManager::getInstance().getRxEnPin();
   uint8_t txEnPin = ConfigManager::getInstance().getTxEnPin(); 
 
+  Power& power = Power::getInstance();
+  power.checkAXP();                                       // check and setup AXP192 and AXP2101 power controller
+
  Log::console(PSTR("Initializing radio ... "));
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;

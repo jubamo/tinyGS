@@ -78,7 +78,6 @@
 #include "src/OTA/OTA.h"
 #include "src/Logger/Logger.h"
 #include "time.h"
-#include "src/Power/Power.h"
 
 #if  RADIOLIB_VERSION_MAJOR != (0x06) || RADIOLIB_VERSION_MINOR != (0x04) || RADIOLIB_VERSION_PATCH != (0x00) || RADIOLIB_VERSION_EXTRA != (0x00)
 #error "You are not using the correct version of RadioLib please copy TinyGS/lib/RadioLib on Arduino/libraries"
@@ -93,7 +92,6 @@
 ConfigManager& configManager = ConfigManager::getInstance();
 MQTT_Client& mqtt = MQTT_Client::getInstance();
 Radio& radio = Radio::getInstance();
-Power& power = Power::getInstance();
 
 const char* ntpServer = "time.cloudflare.com";
 
@@ -140,7 +138,6 @@ void setup()
 #endif
   Serial.begin(115200);
   delay(100);
-  power.checkAXP(); // check and setup AXP192 and AXP2101 power controller
 
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
   Log::console(PSTR("Chip  %s - (Rev. %d)"),  ESP.getChipModel(),ESP.getChipRevision());
@@ -296,7 +293,7 @@ void handleSerial()
     char serialCmd = ' ';
 
     // wait for a bit to receive any trailing characters
-    configManager.delay(25);
+    configManager.delay(50);
     if (serialCmd1 == '!') serialCmd = Serial.read();
 
     // dump the serial buffer
