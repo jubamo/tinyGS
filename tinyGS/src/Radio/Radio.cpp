@@ -36,7 +36,7 @@ bool received = false;
 bool eInterrupt = true;
 bool noisyInterrupt = false;
 bool allow_decode=true;
-String chip = "xxxxxx";
+String moduleNameString = "xxxxxx";
  
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
@@ -65,38 +65,37 @@ void Radio::init()
   spi.begin(board.L_SCK, board.L_MISO, board.L_MOSI, board.L_NSS);
 
   switch (board.L_radio) {
-        case 1: 
-            chip = "SX1278";
-            radioHal = new RadioHal<SX1278>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-            break;
-        case 2: 
-            chip = "SX1276";
-            radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-            break;
-        case 5:
-            chip = "SX1268";
-            radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-            break;
-        case 6:
-            chip = "SX1262";
-            radioHal = new RadioHal<SX1262>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-            break;
-        case 8:
-            chip = "SX1280";
-            radioHal = new RadioHal<SX1280>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
-            break;
-        default:
-            Log::console(PSTR("[??????] Unknown radio type (%d), please select a valid type"),board.L_radio);
-            return;                  
-        } 
+    case RADIO_SX1278:
+      radioHal = new RadioHal<SX1278>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="SX1278";
+      break;
+    case RADIO_SX1276:
+      radioHal = new RadioHal<SX1276>(new Module(board.L_NSS, board.L_DI00, board.L_RST, board.L_DI01, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="SX1276";
+      break;
+    case RADIO_SX1268:
+      radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="SX1268";
+      break;
+    case RADIO_SX1262:
+      radioHal = new RadioHal<SX1262>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="SX1262";
+      break;
+    case RADIO_SX1280:
+      radioHal = new RadioHal<SX1280>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="SX1280";
+    default:
+      radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="default SX1268";
+  }   
    
     if (rxEnPin != UNUSED && txEnPin != UNUSED)
   {
     radioHal -> setRfSwitchPins(rxEnPin , txEnPin );
-    Log::console(PSTR("Radio %s Initialized.  Selected: RxEn-> %d, TxEn-> %d"),chip, rxEnPin, txEnPin );
+    Log::console(PSTR("Radio %s Initialized.  Selected: RxEn-> %d, TxEn-> %d"),moduleNameString, rxEnPin, txEnPin );
   }  
   else
-    Log::console(PSTR("Radio %s Initialized. "),chip);
+    Log::console(PSTR("Radio %s Initialized. "),moduleNameString);
   begin();
 }
 
@@ -112,8 +111,8 @@ int16_t Radio::begin()
 
   if (m.modem_mode == "LoRa")
   {
-   // Log::console(PSTR("[%s-LoRa] %19s (Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%6.2f, SF:%2d, CR:%d, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
+   // Log::console(PSTR("[%s-LoRa] %19s (Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f) kx:%.6f"),moduleNameString, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
+    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%6.2f, SF:%2d, CR:%d, Off:%.0f"),moduleNameString, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
     if (m.frequency != 0) 
     {
       CHECK_ERROR(radioHal->begin(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
@@ -131,8 +130,8 @@ int16_t Radio::begin()
   }
   else
   {
-   // Log::console(PSTR("[%s-FSK] %19s (Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f) kx:%.6f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%.2f, BR:%.2f, Dev:%.2f, Off:%.0f"),chip, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
+   // Log::console(PSTR("[%s-FSK] %19s (Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f) kx:%.6f"),moduleNameString, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
+    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%.2f, BR:%.2f, Dev:%.2f, Off:%.0f"),moduleNameString, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
     CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->setDataShaping(m.OOK));
     CHECK_ERROR(radioHal->setCRC(0));
@@ -300,7 +299,7 @@ uint8_t Radio::listen()
 
   // print RSSI (Received Signal Strength Indicator)
    Log::console(PSTR("[%s] RSSI:%7.2f dBm, SNR:%6.2f dB, Fq.Err:%.0f Hz, %.0f PPM, Packet:%u bytes"), 
-   chip, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror,
+   moduleNameString, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror,
     - (round(status.lastPacketInfo.frequencyerror / status.modeminfo.frequency )), respLen );
 
   if (ConfigManager::getInstance().getautooffset())
@@ -436,19 +435,19 @@ uint8_t Radio::listen()
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[%s] CRC error! Data cannot be retrieved"), chip);
+    Log::console(PSTR("[%s] CRC error! Data cannot be retrieved"), moduleNameString);
     return 2;
   }
   else if (state == RADIOLIB_ERR_LORA_HEADER_DAMAGED)
   {
     // packet was received, but is malformed
-    Log::console(PSTR("[%s] Damaged header! Data cannot be retrieved"), chip);
+    Log::console(PSTR("[%s] Damaged header! Data cannot be retrieved"), moduleNameString);
     return 2;
   }
   else
   {
     // some other error occurred
-    Log::console(PSTR("[%s] Failed, code %d"), chip, state);
+    Log::console(PSTR("[%s] Failed, code %d"), moduleNameString, state);
     return 3;
   }
 }
@@ -519,7 +518,7 @@ int16_t Radio::SetFreqOffset()
   CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor)); 
   CHECK_ERROR(radioHal->startReceive()); 
   status.radio_ready = true;
-  Log::console(PSTR("[%s] New OffSet  %.0f Hz"), chip, 1000000 * status.modeminfo.freqOffset);
+  Log::console(PSTR("[%s] New OffSet  %.0f Hz"), moduleNameString, 1000000 * status.modeminfo.freqOffset);
   return RADIOLIB_ERR_NONE;
 }
 
