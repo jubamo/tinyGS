@@ -95,6 +95,7 @@ void Power::checkAXP()
       Log::console(PSTR("PMU status1,status2 : %02X,%02X"), pmustat1, pmustat2);
       Log::console(PSTR("IRQ status 1,2,3    : %02X,%02X,%02X"), irqstat0, irqstat1, irqstat2);
       break; 
+
     case XPOWERS_AXP2101_CHIP_ID:           // 0x4A
       AXPchip = AXP2101;
       Log::console(PSTR("AXP2101 found"));  // T-Beam V1.2 with AXP2101 power controller
@@ -125,6 +126,7 @@ void Power::checkAXP()
       Log::console(PSTR("PWRON,PWROFF status : %02X,%02X"), pwronsta, pwrofsta);
       Log::console(PSTR("IRQ status 0,1,2    : %02X,%02X,%02X"), irqstat0, irqstat1, irqstat2);
       break;
+      
     default:
       Log::console(PSTR("PMU not detected or not disposable"));
   }  
