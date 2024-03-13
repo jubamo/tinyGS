@@ -36,8 +36,7 @@ bool received = false;
 bool eInterrupt = true;
 bool noisyInterrupt = false;
 bool allow_decode=true;
-String moduleNameString = "xxxxxx";
- 
+
 Radio::Radio()
 #if CONFIG_IDF_TARGET_ESP32S3
   : spi(HSPI)
