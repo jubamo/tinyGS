@@ -287,7 +287,7 @@ void ConfigManager::handleRefreshConsole()
   {
    // Log::console(PSTR("COMMAND: %s"), svalue.c_str());
 
-    if (strcmp(svalue.c_str(), "p") == 0)
+    if (strcmp(svalue.c_str(), "!p") == 0)
     {
       if (!getAllowTx())
       {
