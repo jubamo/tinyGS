@@ -510,7 +510,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   Log::console(PSTR("Set Frequency OffSet to %.3f Hz"), frequency_offset);
   status.modeminfo.freqOffset = frequency_offset / 1000000;
   status.radio_ready = false;
-  CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
+  //CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
   CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor)); 
   CHECK_ERROR(radioHal->startReceive()); 
   status.radio_ready = true;
@@ -521,7 +521,7 @@ int16_t Radio::SetFreqOffset()
 {
   float xtalCorrFactor = ConfigManager::getInstance().getXtalFactor();
   status.radio_ready = false;
-  CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
+  //CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
   CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor)); 
   CHECK_ERROR(radioHal->startReceive()); 
   status.radio_ready = true;

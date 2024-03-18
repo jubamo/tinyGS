@@ -347,7 +347,7 @@ void printControls()
   Log::console(PSTR("!e - erase board config and reset"));
   Log::console(PSTR("!b - reboot the board"));
   Log::console(PSTR("!p - send test packet to nearby stations (to check transmission)"));
-  Log::console(PSTR("+ or -  increase or decrease 1500hz offset"));
-  Log::console(PSTR("f # - frequency offset (*** ¡Atención!! *** falla en SX1268)"));
+  Log::console(PSTR("+ or -  increase or decrease 1200hz offset"));
+  Log::console(PSTR("f # - frequency offset"));
   Log::console(PSTR("------------------------------------"));
 }

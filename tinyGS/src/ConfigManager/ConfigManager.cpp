@@ -324,14 +324,14 @@ void ConfigManager::handleRefreshConsole()
     
     else if (strcmp(svalue.c_str(), "+") == 0)
         {  
-          status.modeminfo.freqOffset += 0.0015;
+          status.modeminfo.freqOffset += 0.0012;
           Radio::getInstance().SetFreqOffset();
           //return;
         }
       
      else if (strcmp(svalue.c_str(), "-") == 0)
            {
-            status.modeminfo.freqOffset -= 0.0015;
+            status.modeminfo.freqOffset -= 0.0012;
            Radio::getInstance().SetFreqOffset();
           //return;   
           }
