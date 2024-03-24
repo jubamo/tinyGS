@@ -220,12 +220,12 @@ void ConfigManager::handleDashboard()
   s += "<tr><td>Name </td><td>" + String(getThingName()) + "</td></tr>";
   s += "<tr><td>Version </td><td>" + String(status.version) + "</td></tr>";
   s += "<tr><td>MQTT Server </td><td>" + String(status.mqtt_connected ? "<span class='G'>CONNECTED</span>" : "<span class='R'>NOT CONNECTED</span>") + "</td></tr>";
-  if ( WiFi.isConnected() )
-      s += "<tr><td>WiFi RSSI </td><td>" + String(WiFi.RSSI()) + "</td></tr>";
+  s += "<tr><td>WiFi RSSI </td><td>" + String(WiFi.isConnected() ? "<span class='G'>CONNECTED</span>" : "<span class='R'>NOT CONNECTED</span>") + "</td></tr>";
   s += "<tr><td>Radio </td><td>" + String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + "</td></tr>";
   s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>"; 
   if (status.vbat != 0.0)
     s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>"; 
+  
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
   if (customConf.fCorrectPPM  != 0) 
@@ -278,8 +278,6 @@ void ConfigManager::handleRefreshConsole()
   }
 
   uint32_t counter = 0;
-
-
 
   String svalue = server.arg("c1");
 
@@ -437,9 +435,10 @@ void ConfigManager::handleRefreshWorldmap()
   data_string += String(getThingName()) + ",";
   data_string += String(status.version) + ",";
   data_string += String(status.mqtt_connected ? "<span class='G'>CONNECTED</span>" : "<span class='R'>NOT CONNECTED</span>") + ",";
-  if (WiFi.isConnected() ){
+  if (!WiFi.isConnected())
+    data_string += String("<span class='R'>NOT CONNECTED</span>") + ",";
+  else
     data_string += String(WiFi.RSSI()) + ",";
-  }
   data_string += String(Radio::getInstance().isReady() ? "<span class='G'>READY</span>" : "<span class='R'>NOT READY</span>") + ",";
   Radio &radio = Radio::getInstance();
   radio.currentRssi();

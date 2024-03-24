@@ -491,7 +491,7 @@ int16_t Radio::remote_freq(char *payload, size_t payload_len)
    }
   else
   {
-    ((SX1268 *)lora)->sleep();
+    //((SX1268 *)lora)->sleep();
     state = ((SX1268 *)lora)->setFrequency((frequency + status.modeminfo.freqOffset) * xtalCorrFactor);
     ((SX1268 *)lora)->startReceive();
   }
