@@ -517,7 +517,7 @@ int16_t Radio::remoteSetFreqOffset(char *payload, size_t payload_len)
   return RADIOLIB_ERR_NONE;
 }
 
-int16_t Radio::SetFreqOffset()
+int16_t Radio::consoleSetFreqOffset()
 {
   float xtalCorrFactor = ConfigManager::getInstance().getXtalFactor();
   status.radio_ready = false;

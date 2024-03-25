@@ -313,7 +313,7 @@ void ConfigManager::handleRefreshConsole()
           int hz_offset = svalue.substring(1).toInt();
           status.modeminfo.freqOffset = 0.000001 * hz_offset;
 
-          if (Radio::getInstance().SetFreqOffset())
+          if (Radio::getInstance().consoleSetFreqOffset())
             {
               Log::debug(PSTR("Error ocurred during batch config!!"));         
             }
@@ -323,14 +323,14 @@ void ConfigManager::handleRefreshConsole()
     else if (strcmp(svalue.c_str(), "+") == 0)
         {  
           status.modeminfo.freqOffset += 0.0012;
-          Radio::getInstance().SetFreqOffset();
+          Radio::getInstance().consoleSetFreqOffset();
           //return;
         }
       
      else if (strcmp(svalue.c_str(), "-") == 0)
            {
             status.modeminfo.freqOffset -= 0.0012;
-           Radio::getInstance().SetFreqOffset();
+           Radio::getInstance().consoleSetFreqOffset();
           //return;   
           }
          
