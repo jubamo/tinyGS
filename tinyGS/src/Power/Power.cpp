@@ -69,7 +69,7 @@ void Power::checkAXP()
    board_t board;
    if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
-  Log::console(PSTR("AXPxxx starts of detection....."));   
+  Log::console(PSTR("AXPxxx start detection....."));   
   byte regV = 0;
   Wire.begin(board.OLED__SDA, board.OLED__SCL);                     // I2C_SDA, I2C_SCL on all new boards
   byte ChipID = I2CreadByte(0x34, 0x03);                            // read byte from xxx_IC_TYPE register

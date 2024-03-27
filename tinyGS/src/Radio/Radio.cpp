@@ -50,17 +50,15 @@ Radio::Radio()
 
 void Radio::init()
 {
+  Power& power = Power::getInstance();
+  power.checkAXP();                                       // check and setup AXP192 and AXP2101 power controller
+  Log::console(PSTR("[%s] Initializing ... "), moduleNameString);
   board_t board;
   uint8_t rxEnPin = ConfigManager::getInstance().getRxEnPin();
   uint8_t txEnPin = ConfigManager::getInstance().getTxEnPin(); 
-
-  Power& power = Power::getInstance();
-  power.checkAXP();                                       // check and setup AXP192 and AXP2101 power controller
-
- Log::console(PSTR("[%s] Initializing radio ... "), moduleNameString);
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
- 
+
   spi.begin(board.L_SCK, board.L_MISO, board.L_MOSI, board.L_NSS);
 
   switch (board.L_radio) {
@@ -99,10 +97,11 @@ void Radio::init()
     if (rxEnPin != UNUSED && txEnPin != UNUSED)
   {
     radioHal -> setRfSwitchPins(rxEnPin , txEnPin );
-    Log::console(PSTR("[%s] Initialized.  Selected: RxEn-> %d, TxEn-> %d"),moduleNameString, rxEnPin, txEnPin );
+    //Log::console(PSTR("[%s] Initialized.  Selected: RxEn-> %d, TxEn-> %d"),moduleNameString, rxEnPin, txEnPin );
+    Log::console(PSTR("[%s] Selected: RxEn-> %d, TxEn-> %d"),moduleNameString, rxEnPin, txEnPin );
   }  
-  else
-    Log::console(PSTR("[%s] Initialized. "),moduleNameString);
+ // else
+ //   Log::console(PSTR("[%s] Initialized. "),moduleNameString);
   begin();
 }
 
