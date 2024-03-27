@@ -45,6 +45,7 @@ constexpr auto TEMPLATE_LEN = 256;
 constexpr auto MODEM_LEN = 256;
 constexpr auto ADVANCED_LEN = 256;
 constexpr auto CB_SELECTED_STR = "selected";
+constexpr auto CUSTOM_LEN = 256;
 
 constexpr auto ROOT_URL = "/";
 constexpr auto CONFIG_URL = "/config";
@@ -118,8 +119,6 @@ typedef struct
   uint8_t L_MOSI;
   uint8_t L_SCK;
   float L_TCXO_V;
-  uint8_t RX_EN;
-  uint8_t TX_EN;
   String BOARD;
 } board_t;
 
@@ -131,6 +130,14 @@ typedef struct
   bool dnOled = true;
   bool lowPower = false;
 } AdvancedConfig;
+
+typedef struct
+{
+  uint8_t VBAT_AIN = UNUSED;     /* GPIO pin for VBAT monitoring */
+  float VBAT_SCALE = 0;     /* factor potential divider between battery and GPIO pin */
+  uint8_t RX_EN = UNUSED; 
+  uint8_t TX_EN = UNUSED; 
+} CustomConfig;
 
 class ConfigManager : public IotWebConf2
 {
@@ -190,6 +197,10 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
+  uint8_t getVbattAin() { return customConf.VBAT_AIN; }
+  float getVbattScale() { return customConf.VBAT_SCALE; }
+  uint8_t getRxEnPin() { return customConf.RX_EN; }
+  uint8_t getTxEnPin() { return customConf.TX_EN; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;
@@ -248,6 +259,7 @@ private:
   void parseAdvancedConf();
   void parseModemStartup();
   bool parseBoardTemplate(board_t &);
+  void parseCustomConf();
 
   std::function<boolean(iotwebconf2::WebRequestWrapper *)> formValidatorStd;
   DNSServer dnsServer;
@@ -262,6 +274,7 @@ private:
   board_t currentBoard;
   bool currentBoardDirty = true;
   AdvancedConfig advancedConf;
+  CustomConfig customConf;
   char savedThingName[IOTWEBCONF_WORD_LEN] = "";
   bool remoteSave = false;
 
@@ -282,6 +295,7 @@ private:
   char boardTemplate[TEMPLATE_LEN] = "";
   char modemStartup[MODEM_LEN] = "";
   char advancedConfig[ADVANCED_LEN] = "";
+  char customConfig[CUSTOM_LEN] = "";
 
   iotwebconf2::NumberParameter latitudeParam = iotwebconf2::NumberParameter("Latitude (3 decimals, will be public)", "lat", latitude, COORDINATE_LENGTH, NULL, "0.000", "required min='-180' max='180' step='0.001'");
   iotwebconf2::NumberParameter longitudeParam = iotwebconf2::NumberParameter("Longitude (3 decimals, will be public)", "lng", longitude, COORDINATE_LENGTH, NULL, "-0.000", "required min='-180' max='180' step='0.001'");
@@ -306,6 +320,7 @@ private:
   iotwebconf2::TextParameter boardTemplateParam = iotwebconf2::TextParameter("Board Template (requires manual restart)", "board_template", boardTemplate, TEMPLATE_LEN, NULL, NULL, "type=\"text\" maxlength=255");
   iotwebconf2::TextParameter modemParam = iotwebconf2::TextParameter("Modem startup", "modem_startup", modemStartup, MODEM_LEN, "", "", "type=\"text\" maxlength=255");
   iotwebconf2::TextParameter advancedConfigParam = iotwebconf2::TextParameter("Advanced parameters", "advanced_config", advancedConfig, ADVANCED_LEN, NULL, NULL, "type=\"text\" maxlength=255");
+  iotwebconf2::TextParameter customConfigParam = iotwebconf2::TextParameter("Custom parameters", "custom_config", customConfig, CUSTOM_LEN, NULL, NULL, "type=\"text\" maxlength=255"); 
 };
 
 #endif

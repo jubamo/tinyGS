@@ -48,7 +48,7 @@
     Github: https://github.com/G4lile0/tinyGS
     Main community chat: https://t.me/joinchat/DmYSElZahiJGwHX6jCzB3Q
 
-    In order to onfigure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
+    In order to configure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
     Data channel (station status and received packets): https://t.me/tinyGS_Telemetry
     Test channel (simulator packets received by test groundstations): https://t.me/TinyGS_Test
 
@@ -103,6 +103,7 @@ void printControls();
 void switchTestmode();
 void checkButton();
 void setupNTP();
+void checkBattery(void);
 
 void configured()
 {
@@ -214,7 +215,14 @@ void loop() {
   mqtt.loop();
   OTA::loop();
   if (configManager.getOledBright() != 0) displayUpdate();
+  
+  static unsigned long lastCheckTime = 0; 
+  if (millis() - lastCheckTime > 500) {
+    lastCheckTime = millis();
+  checkBattery();
+  }
 }
+
 
 void setupNTP()
 {
@@ -319,4 +327,22 @@ void printControls()
   Log::console(PSTR("!b - reboot the board"));
   Log::console(PSTR("!p - send test packet to nearby stations (to check transmission)"));
   Log::console(PSTR("------------------------------------"));
+}
+
+//https://github.com/mdkendall/tinyGS/commit/5d8685477c3b2fae7b81cf590864833f7bc5d6c8
+void checkBattery(void)
+{
+  static float scale = ConfigManager::getInstance().getVbattScale();
+  static uint8_t vBattIn = ConfigManager::getInstance().getVbattAin();
+  static bool initialMeas = true;
+  
+  if ((vBattIn != UNUSED) && (scale != 0)) {
+    float temp;
+    float vbatMeas = (float)analogReadMilliVolts(vBattIn) * scale * 0.001f;
+      if (initialMeas) {
+        status.vbat = vbatMeas;
+        initialMeas  = false;
+      } 
+    status.vbat = (0.80 * status.vbat) + (0.2 * vbatMeas);
+  }
 }

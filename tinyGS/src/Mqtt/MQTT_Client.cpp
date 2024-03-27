@@ -94,7 +94,7 @@ void MQTT_Client::loop()
     else
     {
       StaticJsonDocument<128> doc;
-      doc["Vbat"] = voltage();
+      doc["Vbat"] = status.vbat;//voltage();
       doc["Mem"] = ESP.getFreeHeap();
       doc["RSSI"] =WiFi.RSSI();
       doc["radio"]= status.radio_error;
@@ -204,7 +204,7 @@ void MQTT_Client::sendWelcome()
   doc["board"] = configManager.getBoard();
   doc["mac"] = clientId;
   doc["seconds"] = millis()/1000;
-  doc["Vbat"] = voltage();
+  doc["Vbat"] = status.vbat;//voltage();
   doc["chip"] = ESP.getChipModel();
 
   char buffer[1048];
@@ -851,9 +851,6 @@ void MQTT_Client::remoteGoToSiesta(char *payload, size_t payload_len)
 }
 
 
-
-
-
 // Helper class to use as a callback
 void manageMQTTDataCallback(char *topic, uint8_t *payload, unsigned int length)
 {
@@ -869,7 +866,7 @@ void MQTT_Client::begin()
 }
 
 
-
+/*
 int MQTT_Client::voltage() {
   int medianVoltage;
   int length = 21;
@@ -899,5 +896,5 @@ int MQTT_Client::voltage() {
    }
   medianVoltage = voltages[10];
   return medianVoltage;
-}
+}  */
 

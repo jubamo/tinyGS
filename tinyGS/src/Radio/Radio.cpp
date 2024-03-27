@@ -35,7 +35,6 @@
 bool received = false;
 bool eInterrupt = true;
 bool noisyInterrupt = false;
-
 bool allow_decode=true;
 
 Radio::Radio()
@@ -55,6 +54,8 @@ void Radio::init()
   power.checkAXP();                                       // check and setup AXP192 and AXP2101 power controller
   Log::console(PSTR("[SX12xx] Initializing ... "));
   board_t board;
+  static uint8_t rxEnPin = ConfigManager::getInstance().getRxEnPin();
+  static uint8_t txEnPin = ConfigManager::getInstance().getTxEnPin();
   if (!ConfigManager::getInstance().getBoardConfig(board))
     return;
 
@@ -93,10 +94,10 @@ void Radio::init()
        moduleNameString="default SX1268";
   }
 
-  if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
+  if ( rxEnPin != UNUSED &&  txEnPin != UNUSED)
   {
-    radioHal->setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
+    radioHal->setRfSwitchPins( rxEnPin,  txEnPin);
+    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"),  rxEnPin,  txEnPin);
   }
 
   begin();
