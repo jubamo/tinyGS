@@ -88,7 +88,7 @@ private:
   static void setFlag();
   SPIClass spi;
   const char* TEST_STRING = "TinyGS-test "; // make sure this always start with "TinyGS-test"!!!
-  const char* moduleNameString = "Uninitalised";
+  const char* moduleNameString = "SX12xx";
   
   double _atof(const char* buff, size_t length);
   int _atoi(const char* buff, size_t length);
