@@ -58,6 +58,12 @@
 #define XPOWERS_AXP2101_ADC_DATA_RELUST8                 (0x3C)
 #define XPOWERS_AXP2101_ADC_DATA_RELUST9                 (0x3D)
 
+enum APXchip {
+  AXP192    = 1,
+  AXP2101   = 2,
+  AXP216    = 3,
+  AXP202    = 4,
+};
 
 extern Status status;
 

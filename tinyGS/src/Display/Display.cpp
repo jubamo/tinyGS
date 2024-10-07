@@ -66,19 +66,19 @@ void displayInit()
   ui->setOverlays(overlays, overlaysCount);
 
   #if CONFIG_IDF_TARGET_ESP32S3                                      // Heltec Lora 32 V3 patch to enable Vext that power OLED
-  if (ConfigManager::getInstance().getBoard()== HELTEC_LORA32_V3 ) { 
+    if (ConfigManager::getInstance().getBoard()== HELTEC_LORA32_V3) { 
       pinMode (36, OUTPUT); 
       digitalWrite(36, LOW);
-      }
+    }
   #endif
 
   if (board.OLED__RST != UNUSED) {
     if (!((strcmp(ESP.getChipModel(), "ESP32-PICO-D4") == 0) && (board.OLED__RST == 16)))  {
-        pinMode(board.OLED__RST, OUTPUT);
-        digitalWrite(board.OLED__RST, LOW);
-        delay(50);
-        digitalWrite(board.OLED__RST, HIGH);
-      }
+      pinMode(board.OLED__RST, OUTPUT);
+      digitalWrite(board.OLED__RST, LOW);
+      delay(50);
+      digitalWrite(board.OLED__RST, HIGH);
+    }
   }
 
   /* ui init() also initialises the underlying display */
@@ -234,8 +234,17 @@ void drawFrame3(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
     display->drawString(128 + x,  23 + y, String(status.modeminfo.freqDev)+ "/" + String(status.modeminfo.bw)+ "kHz");
     display->drawString(128 + x,  34 + y, String(status.modeminfo.bitrate)+ "kbps");
   }
+  if (status.vbat != 0.0)
+  {
+      display->setTextAlignment(TEXT_ALIGN_RIGHT);
+      display->drawString(128 + x, 45 + y, "Volt: " + String(status.vbat) + "V");
+  }
+  if (ConfigManager::getInstance().getSetPPM() != 0) 
+  {   
+      display->setTextAlignment(TEXT_ALIGN_LEFT);
+      display->drawString(x, 45 + y, "Corr.: " + String(ConfigManager::getInstance().getSetPPM()) + "PPM");
+  }
 }
-
 void drawFrame4(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y)
 {
   drawRemoteFrame(display, state, x, y, 1);
