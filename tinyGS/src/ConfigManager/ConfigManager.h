@@ -48,6 +48,7 @@ constexpr auto CUSTOM_LEN = 256;
 constexpr auto CB_SELECTED_STR = "selected";
 
 constexpr auto ROOT_URL = "/";
+constexpr auto FAVICON_URL = "/favicon.png";
 constexpr auto CONFIG_URL = "/config";
 constexpr auto DASHBOARD_URL = "/dashboard";
 constexpr auto UPDATE_URL = "/firmware";

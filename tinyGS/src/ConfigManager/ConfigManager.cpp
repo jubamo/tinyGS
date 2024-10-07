@@ -137,6 +137,7 @@ void ConfigManager::handleRoot()
   }
 
   String s = String(FPSTR(IOTWEBCONF_HTML_HEAD));
+  s += "<link rel=\"icon\" href=\"" + String(FAVICON_URL) + "\"/>";
   s += "<style>" + String(FPSTR(IOTWEBCONF_HTML_STYLE_INNER)) + "</style>";
   s += FPSTR(IOTWEBCONF_HTML_HEAD_END);
   s += FPSTR(IOTWEBCONF_HTML_BODY_INNER);

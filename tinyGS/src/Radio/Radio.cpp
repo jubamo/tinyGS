@@ -339,7 +339,7 @@ uint8_t Radio::listen()
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
     // read optional data
-    Log::console(PSTR("Packet (%u bytes):"), respLen);
+    //Log::console(PSTR("Packet (%u bytes):"), respLen);
     uint16_t buffSize = respLen * 2 + 1;
     if (buffSize > 255)
       buffSize = 255;
@@ -410,7 +410,7 @@ uint8_t Radio::listen()
           crcfield=msb*256+lsb;
         }
         Log::console(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
-        Log::log_packet(respFrame,respLen);
+        //Log::log_packet(respFrame,respLen);
         packet_logged=true;
         if (fcs!=crcfield){
             Log::console(PSTR("Error_CRC"));
@@ -425,7 +425,7 @@ uint8_t Radio::listen()
       }
     }
 
-    if (!packet_logged){Log::log_packet(respFrame,respLen);}
+    //if (!packet_logged){Log::log_packet(respFrame,respLen);}
 
     // if Filter enabled filter the received packet
     if (status.modeminfo.filter[0] != 0)
