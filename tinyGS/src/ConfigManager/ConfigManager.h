@@ -257,6 +257,7 @@ private:
 
   ConfigManager();
   void handleRoot();
+  void handleFavicon();
   void handleDashboard();
   void handleRefreshConsole();
   void handleRefreshWorldmap();
