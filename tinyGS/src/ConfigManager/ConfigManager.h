@@ -44,6 +44,7 @@ constexpr auto NUMBER_LEN = 32;
 constexpr auto TEMPLATE_LEN = 256;
 constexpr auto MODEM_LEN = 256;
 constexpr auto ADVANCED_LEN = 256;
+constexpr auto CUSTOM_LEN = 256;
 constexpr auto CB_SELECTED_STR = "selected";
 
 constexpr auto ROOT_URL = "/";
@@ -120,8 +121,7 @@ typedef struct
   uint8_t L_MOSI;
   uint8_t L_SCK;
   float L_TCXO_V;
-  uint8_t RX_EN;
-  uint8_t TX_EN;
+
   String BOARD;
 } board_t;
 
@@ -133,6 +133,17 @@ typedef struct
   bool dnOled = true;
   bool lowPower = false;
 } AdvancedConfig;
+
+typedef struct
+{
+  int fCorrectPPM = 0;
+  uint8_t  tPublish =  2; 
+  bool autoOffset = false;
+  uint8_t VBAT_AIN = UNUSED;     /* GPIO pin for VBAT monitoring */
+  float VBAT_SCALE = 0;     /* potential divider between battery and GPIO pin */
+  uint8_t RX_EN = UNUSED; 
+  uint8_t TX_EN = UNUSED; 
+} CustomConfig;
 
 class ConfigManager : public IotWebConf2
 {
@@ -192,6 +203,14 @@ public:
   bool getFlipOled() { return advancedConf.flipOled; }
   bool getDayNightOled() { return advancedConf.dnOled; }
   bool getLowPower() { return advancedConf.lowPower; }
+  uint8_t gettpublish() { return customConf.tPublish; }  
+  bool getautooffset() { return customConf.autoOffset; }
+  int getSetPPM() { return customConf.fCorrectPPM; }
+  float getXtalFactor() { return 1 + customConf.fCorrectPPM / 1e6; }
+  uint8_t getVbattAin() { return customConf.VBAT_AIN; }
+  float getVbattScale() { return customConf.VBAT_SCALE; }
+  uint8_t getRxEnPin() { return customConf.RX_EN; }
+  uint8_t getTxEnPin() { return customConf.TX_EN; }
   bool getBoardConfig(board_t &board)
   {
     bool ret = true;
@@ -250,6 +269,7 @@ private:
   void boardDetection();
   void configSavedCallback();
   void parseAdvancedConf();
+  void parseCustomConf();
   void parseModemStartup();
   bool parseBoardTemplate(board_t &);
 
@@ -266,6 +286,7 @@ private:
   board_t currentBoard;
   bool currentBoardDirty = true;
   AdvancedConfig advancedConf;
+  CustomConfig customConf;
   char savedThingName[IOTWEBCONF_WORD_LEN] = "";
   bool remoteSave = false;
 
@@ -286,12 +307,13 @@ private:
   char boardTemplate[TEMPLATE_LEN] = "";
   char modemStartup[MODEM_LEN] = "";
   char advancedConfig[ADVANCED_LEN] = "";
+  char customConfig[CUSTOM_LEN] = "";
 
   iotwebconf2::NumberParameter latitudeParam = iotwebconf2::NumberParameter("Latitude (3 decimals, will be public)", "lat", latitude, COORDINATE_LENGTH, NULL, "0.000", "required min='-180' max='180' step='0.001'");
   iotwebconf2::NumberParameter longitudeParam = iotwebconf2::NumberParameter("Longitude (3 decimals, will be public)", "lng", longitude, COORDINATE_LENGTH, NULL, "-0.000", "required min='-180' max='180' step='0.001'");
   iotwebconf2::SelectParameter tzParam = iotwebconf2::SelectParameter("Time Zone", "tz", tz, TZ_LENGTH, (char *)TZ_VALUES, (char *)TZ_NAMES, sizeof(TZ_VALUES) / TZ_LENGTH, TZ_NAME_LENGTH);
 
-  iotwebconf2::ParameterGroup groupMqtt = iotwebconf2::ParameterGroup("MQTT credentials", "MQTT credentials (First join the group <a href='https://t.me/joinchat/DmYSElZahiJGwHX6jCzB3Q'>here</a>)<br>Then open a private chat with <a href='https://t.me/tinygs_personal_bot'>@tinygs_personal_bot</a> and ask /mqtt");
+  iotwebconf2::ParameterGroup groupMqtt = iotwebconf2::ParameterGroup("MQTT credentials", "MQTT credentials (First join the group <a href='https://t.me/joinchat/DmYSElZahiJGwHX6jCzB3Q'>here</a>)<br>Then open a private chat with <a href='https://t.me/tinygs_personal_bot'>@tinygs_personal_bot</a> and ask /mqtt"); 
   iotwebconf2::TextParameter mqttServerParam = iotwebconf2::TextParameter("Server address", "mqtt_server", mqttServer, MQTT_SERVER_LENGTH, MQTT_DEFAULT_SERVER, MQTT_DEFAULT_SERVER, "required type=\"text\" maxlength=30");
   iotwebconf2::NumberParameter mqttPortParam = iotwebconf2::NumberParameter("Server Port", "mqtt_port", mqttPort, MQTT_PORT_LENGTH, MQTT_DEFAULT_PORT, MQTT_DEFAULT_PORT, "required min=\"0\" max=\"65536\" step=\"1\"");
   iotwebconf2::TextParameter mqttUserParam = iotwebconf2::TextParameter("MQTT Username", "mqtt_user", mqttUser, MQTT_USER_LENGTH, NULL, NULL, "required type=\"text\" maxlength=30");
@@ -310,6 +332,7 @@ private:
   iotwebconf2::TextParameter boardTemplateParam = iotwebconf2::TextParameter("Board Template (requires manual restart)", "board_template", boardTemplate, TEMPLATE_LEN, NULL, NULL, "type=\"text\" maxlength=255");
   iotwebconf2::TextParameter modemParam = iotwebconf2::TextParameter("Modem startup", "modem_startup", modemStartup, MODEM_LEN, "", "", "type=\"text\" maxlength=255");
   iotwebconf2::TextParameter advancedConfigParam = iotwebconf2::TextParameter("Advanced parameters", "advanced_config", advancedConfig, ADVANCED_LEN, NULL, NULL, "type=\"text\" maxlength=255");
-};
+  iotwebconf2::TextParameter customConfigParam = iotwebconf2::TextParameter("Custom parameters", "custom_config", customConfig, CUSTOM_LEN, NULL, NULL, "type=\"text\" maxlength=255");
+  };
 
 #endif

@@ -70,11 +70,11 @@ void Log::AddLog(Log::LoggingLevels level, const char* logData)
   if (level > Log::logLevel)
     return;
 
-  char timeStr[10];  // "13:45:21 "
+  char timeStr[16];  // "13:45:21 "
   time_t currentTime = time (NULL);
   if (currentTime > 0) {
       struct tm *timeinfo = localtime (&currentTime);
-      snprintf_P (timeStr, sizeof (timeStr), "%02d:%02d:%02d ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+      snprintf_P (timeStr, sizeof (timeStr), "%02d/%02d %02d:%02d:%02d ",timeinfo->tm_mday, (1 + timeinfo->tm_mon), timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
   }
   else {
       timeStr[0] = '\0';
@@ -85,7 +85,7 @@ void Log::AddLog(Log::LoggingLevels level, const char* logData)
   // Delimited, zero-terminated buffer of log lines.
   // Each entry has this format: [index][log data]['\1']
   while (logIdx == log[0] ||  // If log already holds the next index, remove it
-          strlen(log) + strlen(logData) + 13 > MAX_LOG_SIZE)  // 13 = idx + time + '\1' + '\0'
+          strlen(log) + strlen(logData) + 19 > MAX_LOG_SIZE)  // 13 = idx + time + '\1' + '\0'
   {
     char* it = log;
     it++;                                // Skip web_log_index

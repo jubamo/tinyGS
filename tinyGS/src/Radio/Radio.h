@@ -79,6 +79,7 @@ public:
   int16_t sendTx(uint8_t* data, size_t length);
   int16_t sendTestPacket();
   int16_t remoteSetFreqOffset(char* payload, size_t payload_len);
+  int16_t consoleSetFreqOffset();
 
    
 private:
@@ -89,8 +90,8 @@ private:
   static void setFlag();
   SPIClass spi;
   const char* TEST_STRING = "TinyGS-test "; // make sure this always start with "TinyGS-test"!!!
-  const char* moduleNameString = "Uninitalised";
-
+  const char* moduleNameString = "SX12xx";
+  
   double _atof(const char* buff, size_t length);
   int _atoi(const char* buff, size_t length);
 };

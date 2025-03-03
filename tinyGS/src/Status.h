@@ -56,7 +56,7 @@ struct ModemInfo {
   uint8_t   filter[8] = {0,0,0,0,0,0,0,0};
   uint8_t   len       = 64;     // FSK expected lenght in packet mode
   uint8_t   enc       = 0;      // FSK  transmission encoding. (0 -> NRZ(sx127x, sx126x)(defaul).  1 -> MANCHESTER(sx127x), WHITENING(sx126x).  2 -> WHITENING(sx127x, sx126x). 10 -> NRZ(sx127x), WHITENING(sx126x).
-  float currentRssi = 0;
+  float currentRssi   = 0;
   ///////////////////////////////////////////////////////
   uint16_t  whitening_seed  = 0x01E1; //Whitening Seed
   uint8_t   framing   = 0; //0 -> No framing - 1 -> AX.25
@@ -93,6 +93,7 @@ struct Status {
   bool mqtt_connected = false;
   bool radio_ready = false;
   int16_t radio_error = 0;
+  float vbat = 0.0;
   PacketInfo lastPacketInfo;
   ModemInfo modeminfo;
   float satPos[2] = {0, 0};

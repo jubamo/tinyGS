@@ -48,7 +48,7 @@
     Github: https://github.com/G4lile0/tinyGS
     Main community chat: https://t.me/joinchat/DmYSElZahiJGwHX6jCzB3Q
 
-    In order to onfigure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
+    In order to configure your Ground Station please open a private chat to get your credentials https://t.me/tinygs_personal_bot
     Data channel (station status and received packets): https://t.me/tinyGS_Telemetry
     Test channel (simulator packets received by test groundstations): https://t.me/TinyGS_Test
 
@@ -79,8 +79,7 @@
 #include "src/Logger/Logger.h"
 #include "time.h"
 
-
-#if  RADIOLIB_VERSION_MAJOR != (0x06) || RADIOLIB_VERSION_MINOR != (0x04) || RADIOLIB_VERSION_PATCH != (0x00) || RADIOLIB_VERSION_EXTRA != (0x00)
+#if  RADIOLIB_VERSION_MAJOR != (0x06) || RADIOLIB_VERSION_MINOR != (0x05) || RADIOLIB_VERSION_PATCH != (0x00) || RADIOLIB_VERSION_EXTRA != (0x00)
 #error "You are not using the correct version of RadioLib please copy TinyGS/lib/RadioLib on Arduino/libraries"
 #endif
 
@@ -102,6 +101,7 @@ Status status;
 void printControls();
 void switchTestmode();
 void checkButton();
+void checkBattery(void);
 void setupNTP();
 
 void configured()
@@ -114,6 +114,7 @@ void configured()
 void wifiConnected()
 {
   configManager.setWifiConnectionCallback(NULL);
+  Log::console(PSTR("Local ip address: %s "), WiFi.localIP().toString().c_str());
   setupNTP();
   displayShowConnected();
   arduino_ota_setup();
@@ -137,8 +138,10 @@ void setup()
 #endif
   Serial.begin(115200);
   delay(100);
+
   Log::console(PSTR("TinyGS Version %d - %s"), status.version, status.git_version);
-  Log::console(PSTR("Chip  %s - %d"),  ESP.getChipModel(),ESP.getChipRevision());
+  Log::console(PSTR("Chip  %s - (Rev. %d)"),  ESP.getChipModel(),ESP.getChipRevision());
+  
   configManager.setWifiConnectionCallback(wifiConnected);
   configManager.setConfiguredCallback(configured);
   configManager.init();
@@ -209,6 +212,8 @@ void loop() {
     return;
   }
 
+  checkBattery();
+
   // connected
 
   mqtt.loop();
@@ -254,6 +259,29 @@ void checkButton()
   }
 }
 
+//https://github.com/mdkendall/tinyGS/commit/5d8685477c3b2fae7b81cf590864833f7bc5d6c8
+void checkBattery(void)
+{
+  #define BATTERY_INTERVAL 1000
+  #define scale ConfigManager::getInstance().getVbattScale()
+  #define vBattIn ConfigManager::getInstance().getVbattAin()
+
+  static unsigned long lastReadTime = 0; 
+  static bool initial = true;
+  if (millis() - lastReadTime > BATTERY_INTERVAL) {
+      lastReadTime = millis();
+    if ((vBattIn != UNUSED) && (scale != 0)) {
+   float temp;
+        float vbatMeas = (float)analogReadMilliVolts(vBattIn) *scale * 0.001f;
+        if (initial) {
+            status.vbat = vbatMeas;
+            initial  = false;
+          } 
+        status.vbat = (0.75 * status.vbat) + (0.25 * vbatMeas);
+    }
+  }
+} 
+
 void handleSerial()
 {
   if(Serial.available())
@@ -267,6 +295,7 @@ void handleSerial()
     // wait for a bit to receive any trailing characters
     configManager.delay(500);
     if (serialCmd1 == '!') serialCmd = Serial.read();
+
     // dump the serial buffer
     while(Serial.available())
     {
@@ -276,7 +305,7 @@ void handleSerial()
     // process serial command
     switch(serialCmd) {
       case ' ':
-      break;         
+        break;   
       case 'e':
         configManager.resetAllConfig();
         ESP.restart();
@@ -292,7 +321,7 @@ void handleSerial()
         }
 
         static long lastTestPacketTime = 0;
-        if (millis() - lastTestPacketTime < 20*1000)
+        if (millis() - lastTestPacketTime < 2*1000)
         {
           Log::console(PSTR("Please wait a few seconds to send another test packet."));
           break;
@@ -318,5 +347,7 @@ void printControls()
   Log::console(PSTR("!e - erase board config and reset"));
   Log::console(PSTR("!b - reboot the board"));
   Log::console(PSTR("!p - send test packet to nearby stations (to check transmission)"));
+  Log::console(PSTR("+ or -  increase or decrease 1200hz offset"));
+  Log::console(PSTR("f # - frequency offset"));
   Log::console(PSTR("------------------------------------"));
 }
