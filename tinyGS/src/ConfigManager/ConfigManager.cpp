@@ -452,21 +452,21 @@ void ConfigManager::handleRefreshWorldmap()
 
   // modem configuration (for modemconfig id table data)
   if (customConf.fCorrectPPM != 0) 
-  data_string += String(customConf.fCorrectPPM) + "," ; 
-else 
-  data_string += String("  ") + "," ; 
+    data_string += String(customConf.fCorrectPPM) + "," ; 
+  else 
+    data_string += String("  ") + "," ; 
   data_string += String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + "," + String(status.modeminfo.freqOffset) + ",";
   if (status.modeminfo.modem_mode == "LoRa")
-  {
+    {
     data_string += String(status.modeminfo.sf) + ",";
     data_string += String(status.modeminfo.cr) + ",";
-  }
+    }
   else
-  {
+    {
     data_string += String(status.modeminfo.bitrate) + ",";
     data_string += String(status.modeminfo.freqDev) + ",";
-  }
+    }
   data_string += String(status.modeminfo.bw) + ",";
 
 
