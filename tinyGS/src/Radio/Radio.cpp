@@ -116,7 +116,7 @@ int16_t Radio::begin()
   if (m.modem_mode == "LoRa")
   {
    // Log::console(PSTR("[%s-LoRa] %19s (Frq:%.3f, BW:%5.1f, SF:%2d, CR:%d, Off:%.0f) kx:%.6f"),moduleNameString, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%6.2f, SF:%2d, CR:%d, Off:%.0f"),moduleNameString, m.satellite, m.frequency, m.bw, m.sf, m.cr, 1000000*m.freqOffset);
+    Log::console(PSTR("[%s] %19s, LoRa, Frq:%.3f, BW:%6.2f, SF:%2d, CR:%d, Off:%.0f"),moduleNameString, m.satellite, (m.frequency + status.tle.freqDoppler / 1000000), m.bw, m.sf, m.cr, 1000000*m.freqOffset);
     if (m.frequency != 0) 
     {
       CHECK_ERROR(radioHal->begin((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) * xtalCorrFactor / 1000000, m.bw, m.sf, m.cr, m.sw, m.power, m.preambleLength, m.gain, board.L_TCXO_V));
@@ -135,7 +135,7 @@ int16_t Radio::begin()
   else
   {
    // Log::console(PSTR("[%s-FSK] %19s (Frq:%.3f, BW:%5.1f, BR:%2.2f, Dev:%5.2f, Off:%.0f) kx:%.6f"),moduleNameString, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset, xtalCorrFactor);
-    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%.2f, BR:%.2f, Dev:%.2f, Off:%.0f"),moduleNameString, m.satellite, m.frequency, m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
+    Log::console(PSTR("[%s] %19s, FSK, Frq:%.3f, BW:%.2f, BR:%.2f, Dev:%.2f, Off:%.0f"),moduleNameString, m.satellite, (m.frequency + status.tle.freqDoppler / 1000000), m.bw, m.bitrate, m.freqDev, 1000000*m.freqOffset);
     //CHECK_ERROR(radioHal->beginFSK(((m.frequency + m.freqOffset) * xtalCorrFactor), m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
     CHECK_ERROR(radioHal->beginFSK((status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) * xtalCorrFactor / 1000000, m.bitrate, m.freqDev, m.bw, m.power, m.preambleLength, (m.OOK == 255), board.L_TCXO_V));
 
@@ -161,16 +161,16 @@ int16_t Radio::begin()
   radioHal->setDio0Action(setFlag);
   // start listening for LoRa packets
   //Log::console(PSTR("[%s] Starting to listen to %s"), moduleNameString, m.satellite);
-  Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
-  //Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,m.frequency);
+
+       //Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
+  
+   //Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,m.frequency);
   CHECK_ERROR(radioHal->startReceive());
   status.modeminfo.currentRssi = radioHal->getRSSI(false,true);
 
   status.radio_ready = true;
   return RADIOLIB_ERR_NONE;
 }
-
-
 
 
 
@@ -347,10 +347,6 @@ void Radio::setFrequency()
   //Serial.println( status.tle.freqDoppler ,4 );
   //Serial.print("modem: ");
   //Serial.println( (status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000 , 4);
-
-
-
-
 }
 
 

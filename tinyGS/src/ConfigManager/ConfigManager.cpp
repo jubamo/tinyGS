@@ -232,14 +232,13 @@ void ConfigManager::handleDashboard()
   s += "<tr><td>Noise floor </td><td>" + String(status.modeminfo.currentRssi) + "</td></tr>"; 
 
   if (status.vbat != 0.0)
-    s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>"; 
+    s += "<tr><td>Voltage </td><td>" + String(status.vbat) + "</td></tr>";
   s += F("</table></div>");
   s += F("<div class=\"card\"><h3>Modem Configuration</h3><table id=""modemconfig"">");
   if (customConf.fCorrectPPM  != 0) 
     s += "<tr><td>Correction PPM </td><td>" + String(customConf.fCorrectPPM ) + "</td></tr>";
-    else
-      s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
-  s += "<tr><td>Listening to </td><td>" + String(status.modeminfo.satellite) + "</td></tr>";
+  else
+    s += "<tr><td></td><td>" + String("   ") + "</td></tr>";
   s += "<tr><td>Modulation </td><td>" + String(status.modeminfo.modem_mode) + "</td></tr>";
   s += "<tr><td>Frequency </td><td>" + String(status.modeminfo.frequency) + "</td></tr>";
   s += "<tr><td>Freq. Offset </td><td>" + String(status.modeminfo.freqOffset) + "</td></tr>";
@@ -452,16 +451,12 @@ void ConfigManager::handleRefreshWorldmap()
   String data_string = cx + "," + cy + ",";
 
   // modem configuration (for modemconfig id table data)
-
+  if (customConf.fCorrectPPM != 0) 
+  data_string += String(customConf.fCorrectPPM) + "," ; 
+else 
+  data_string += String("  ") + "," ; 
   data_string += String(status.modeminfo.modem_mode) + "," +
                  String(status.modeminfo.frequency) + "," + String(status.modeminfo.freqOffset) + ",";
-  if (customConf.fCorrectPPM != 0) 
-    data_string += String(customConf.fCorrectPPM) + "," ; 
-  else 
-    data_string += String("  ") + "," ;      
-  data_string += String(status.modeminfo.satellite) + "," +
-                 String(status.modeminfo.modem_mode) + "," +
-                 String(status.modeminfo.frequency) + ",";
   if (status.modeminfo.modem_mode == "LoRa")
   {
     data_string += String(status.modeminfo.sf) + ",";
@@ -498,7 +493,7 @@ void ConfigManager::handleRefreshWorldmap()
   }
   if (status.vbat != 0.0)
     data_string += String(status.vbat) + ",";
-  
+
    // sat_info
    char timeStr[10];  // "13:45:21 "
    time_t currentTime = time (NULL);
