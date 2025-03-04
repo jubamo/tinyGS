@@ -715,7 +715,7 @@ int16_t Radio::consoleSetFreqOffset()
   float xtalCorrFactor = ConfigManager::getInstance().getXtalFactor();
   status.radio_ready = false;
   if (moduleNameString[3] == '7') CHECK_ERROR(radioHal->sleep());  // sleep mandatory if FastHop isn't ON.
-  CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset) * xtalCorrFactor)); 
+  CHECK_ERROR(radioHal->setFrequency((status.modeminfo.frequency + status.modeminfo.freqOffset / 1000000) * xtalCorrFactor)); 
   CHECK_ERROR(radioHal->startReceive()); 
   status.radio_ready = true;
   Log::console(PSTR("[%s] New OffSet  %.0f Hz"), moduleNameString, 1000000 * status.modeminfo.freqOffset);
