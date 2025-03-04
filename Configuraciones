@@ -1,0 +1,7 @@
+{"name":"E32-400M30S","aADDR":60,"oSDA":4,"oSCL":15,"oRST":16,"pBut":0,"led":25,"radio":1,"lNSS":18,"lDIO0":26,"lDIO1":12,"lBUSSY":"UNUSED","lRST":14,"lMISO":19,"lMOSI":27,"lSCK":5,"lTCXOV":0,"RXEN":32,"TXEN":33}
+{"mode":"LoRa","sat":"Norbi","NORAD":46494,"freq":436.703,"bw":250,"pl":8,"pwr":5,"sf":10,"cr":5,"sw":18,"crc":true,"fldro":1,"cl":120,"gain":0}
+{"dmode":0,"lowPower":0,"flipOled":1,"dnOled":0}
+
+{"name":"E22_400M30S","aADDR":60,"oSDA":21,"oSCL":22,"oRST":16,"pBut":0,"led":25,"radio":5,"lNSS":5,"lDIO0":255,"lDIO1":26,"lBUSSY":12,"lRST":14,"lMISO":19,"lMOSI":23,"lSCK":18,"lTCXOV":1.6}
+{"mode":"LoRa","sat":"Norbi","NORAD":46494,"freq":436.703,"bw":250,"pl":8,"pwr":5,"sf":10,"cr":5,"sw":18,"crc":true,"fldro":1,"cl":120,"gain":0}
+{"dmode":0,"lowPower":0,"flipOled":1,"dnOled":0}
