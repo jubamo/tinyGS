@@ -184,7 +184,6 @@ if (status.modeminfo.tle[0] != 0)
   double       dMyLAT   = ConfigManager::getInstance().getLatitude();  // Latitude (Breitengrad): N -> +, S -> -
   double       dMyLON   = ConfigManager::getInstance().getLongitude(); ;  // Longitude (Längengrad): E -> +, W -> -
   double       dMyALT   = status.tle.tgsALT;      // Altitude ASL (m)
-  
   double       dfreqRX  = status.modeminfo.frequency;     // Nominal downlink frequency
   double       dfreqTX  = status.modeminfo.frequency;     // Nominal uplink frequency
   
