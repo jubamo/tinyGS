@@ -84,7 +84,7 @@ struct Tle {
   double       dSatLON  = 0;           // Satellite longitude
   double       dSatAZ   = 0;           // Satellite azimuth
   double       dSatEL   = 0;           // Satellite elevation
-  double       tgsALT   = 500;         // station altitude 
+  double       tgsALT   = 20;         // station altitude 
  };
 
  
