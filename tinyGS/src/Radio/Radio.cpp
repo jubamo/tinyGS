@@ -184,7 +184,7 @@ if (status.modeminfo.tle[0] != 0)
   const char  *pcMyName = "tinyGS";    // Observer name
   double       dMyLAT   = ConfigManager::getInstance().getLatitude();  // Latitude (Breitengrad): N -> +, S -> -
   double       dMyLON   = ConfigManager::getInstance().getLongitude(); ;  // Longitude (Längengrad): E -> +, W -> -
-  double       dMyALT   = 800.0;       // Altitude ASL (m)
+  double       dMyALT   = 20.0;       // Altitude ASL (m)
   
   double       dfreqRX  = status.modeminfo.frequency;     // Nominal downlink frequency
   double       dfreqTX  = status.modeminfo.frequency;     // Nominal uplink frequency
