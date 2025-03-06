@@ -92,10 +92,11 @@ void Radio::init()
        moduleNameString="default SX1268";
   }
 
+  board.RX_EN=32; board.TX_EN=33;
   if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
   {
     radioHal->setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
+    Log::console(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
   }
 
   begin();
