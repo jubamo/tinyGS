@@ -453,7 +453,7 @@ uint8_t Radio::listen()
    ///moduleNameString, status.lastPacketInfo.rssi, 
    ///moduleNameString, status.lastPacketInfo.snr, 
    ///moduleNameString, status.lastPacketInfo.frequencyerror);
-  Log::console(PSTR("] %s [ RSSI: %.2f dBm   SNR: %.2f dB  Error: %.f Hz"),
+  Log::console(PSTR("[%s] RSSI: %.2f dBm   SNR: %.2f dB  Error: %.f Hz"),
    status.modeminfo.satellite, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror); 
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
