@@ -114,6 +114,7 @@ void configured()
 void wifiConnected()
 {
   configManager.setWifiConnectionCallback(NULL);
+  Log::console(PSTR("Local ip address: %s "), WiFi.localIP().toString().c_str());
   setupNTP();
   displayShowConnected();
   arduino_ota_setup();
