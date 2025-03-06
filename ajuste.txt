@@ -1,0 +1,14 @@
+_
+"433MHz HELTEC WiFi LoRA 32 V1"
+
+**Board Template (requires manual restart)**_
+``{"name":"E32-400M30S","aADDR":60,"oSDA":4,"oSCL":15,"oRST":16,"pBut":0,"led":25,"radio":1,"lNSS":18,"lDIO0":26,"lDIO1":12,"lBUSSY":255,"lRST":14,"lMISO":19,"lMOSI":27,"lSCK":5,"lTCXOV":0}
+
+_**Modem startup**_
+{"mode":"LoRa","sat":"Norbi","NORAD":46494,"freq":436.703,"bw":250,"pl":8,"pwr":5,"sf":10,"cr":5,"sw":18,"crc":true,"fldro":1,"cl":120,"gain":0}
+
+**_Advanced parameters_**
+{"dmode":0,"lowPower":0,"flipOled":1,"dnOled":0}
+
+_**Custom parameters**_
+{"fCorrectPPM":-17,"tPublish":2,"autoOffset":0,"vBattScale":2,"vBattAin":36,"rxEnPin":32,"txEnPin":33}
