@@ -87,7 +87,6 @@ struct Tle {
   double       tgsALT   = 500;         // station altitude 
   uint16_t     refresh  = 5000;        // TLE refresh calculation timing       
   uint16_t     freqTol  = 300;         // Frequency doppler tolerance to update modem 
-  
  };
 
  
