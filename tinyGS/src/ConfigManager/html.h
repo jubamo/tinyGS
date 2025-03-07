@@ -73,12 +73,48 @@ const char IOTWEBCONF_DASHBOARD_BODY_INNER[] PROGMEM   = "<div style='text-align
 const char IOTWEBCONF_CONSOLE_BODY_INNER[] PROGMEM  = "<br /><div class='console'><textarea readonly='' id='t1' wrap='off' name='t1'></textarea><form method='get' onsubmit='return f(1);'><input id='c1' placeholder='Enter command' autofocus='' name='c1'><br></form></div>\n";
 const char IOTWEBCONF_CONSOLE_SCRIPT[] PROGMEM  = "var x=null,lt,to,tp,pc='';var sn=0,id=0;function f(p){var c,o='',t;clearTimeout(lt);t = document.getElementById('t1');if (p==1) {c =document.getElementById('c1');o='&c1='+encodeURIComponent(c.value);c.value='';t.scrollTop=99999;sn=t.scrollTop;}if (t.scrollTop >= sn){if (x!=null){x.abort();}x=new XMLHttpRequest();x.onreadystatechange=function() {if(x.readyState==4&&x.status==200){var z,d;var a=x.responseText;console.log(a);id=a.substr(0,a.indexOf('\\n'));z=a.substr(a.indexOf('\\n')+1);if(z.length>0){t.value+=z;}t.scrollTop=99999;sn=t.scrollTop;}};x.open('GET','cs?c2='+id+o,true);x.send();}lt=setTimeout(f,2345);return false;}window.addEventListener('load', f);";
 const char ADVANCED_CONFIG_SCRIPT[] PROGMEM = 
-    "function setup_click(eid){var ec=document.getElementById(eid);ec.onclick=function(){editElementDict(ec);};}" 
-    "function dictTable(dict){var tb = '<table id=""current-table"" rules=""all"" style=""background-color:#f0f0f0;border:1px solid black;"">';for(const [key, value] of Object.entries(dict)) { var valuestr=value; if (typeof value =='string') {valuestr='&quot;'+value+'&quot;'}; tb += '<tr><td style=""padding:2px 2px 2px 2px;"">' + key + '</td><td><input id=""d-' + key + '"" type=""text"" 255 placeholder=\"' + valuestr + '\" value=\"' + valuestr + '\" style=""padding:2px 2px 2px 2px;""><div class=""em""></div></input></td></tr>'; } tb += '</table>'; return tb; }"
-    "function tableDictString(tbl){var ts = '{'; for (let i=0; i < tbl.rows.length; i++) {var row=tbl.rows[i]; var rowid=row.innerText.replace( /[\\t\\r\\n]+/gm, '' ); ts+='\"'+rowid+'\":'+document.getElementById('d-' + rowid).value+','}; ts=ts.slice(0, -1)+'}'; return ts;}"
-    "function tableDoneHandler(btn){var tbd=document.getElementById('current-table'); var ds=tableDictString(tbd); current_ctrl.value=ds; document.getElementById('dt-' + current_id).remove(); current_ctrl=null; current_id=null; }" 
-    "function editElementDict(ed){if (current_ctrl===null){var ph=ed.getAttribute('placeholder'); var dstring = ed.value!='' ? ed.value : ph; if(dstring !== ''){ current_id=ed.id; var dict = JSON.parse(dstring); var tblhtml = '<div id=""dt-' + current_id + '"">' + dictTable(dict) + '<input type=""button"" value=""Done ' + current_id + '"" onclick=""tableDoneHandler()"" style=""height:35px;width:100px;background-color:lightblue;""></div>'; ed.insertAdjacentHTML('afterend', tblhtml); current_ctrl=ed; } } }"
-    "var current_id, current_ctrl=null; window.addEventListener('load', function() {setup_click('board_template'); setup_click('modem_startup');});";
+    "function setup_click(eid){"
+        "var ec=document.getElementById(eid);"
+        "ec.onclick=function(){"
+            "editElementDict(ec);};}"
+
+    "function dictTable(dict){"
+        "var tb = '<table id=""current-table"" rules=""all"" style=""background-color:#f0f0f0;"
+        "border:1px solid black;"">';"
+        "for(const [key, value] of Object.entries(dict)) { "
+            "var valuestr=value; "
+            "if (typeof value =='string') {"
+                "valuestr='&quot;'+value+'&quot;'}; "
+            "tb += '<tr><td style=""padding:2px 2px 2px 2px;"">' + key + '</td><td><input id=""d-' + key + '"" type=""text"" 255 placeholder=\"' + valuestr + '\" value=\"' + valuestr + '\" style=""padding:2px 2px 2px 2px;"
+            "><div class=""em""></div></input></td></tr>'; }"
+        " tb += '</table>'; return tb; }"
+
+    "function tableDictString(tbl){"
+        "var ts = '{'; "
+            "for (let i=0; i < tbl.rows.length; i++) {"
+                "var row=tbl.rows[i]; var rowid=row.innerText.replace( /[\\t\\r\\n]+/gm, '' ); ts+='\"'+rowid+'\":'+document.getElementById('d-' + rowid).value+','}; "
+            "ts=ts.slice(0, -1)+'}'; "
+        "return ts;}"
+
+    "function tableDoneHandler(btn){"
+        "var tbd=document.getElementById('current-table'); "
+        "var ds=tableDictString(tbd); "
+        "current_ctrl.value=ds; "
+        "document.getElementById('dt-' + current_id).remove(); "
+        "current_ctrl=null; current_id=null; }" 
+
+    "function editElementDict(ed){"
+        "if (current_ctrl===null){"
+            "var ph=ed.getAttribute('placeholder'); "
+            "var dstring = ed.value!='' ? ed.value : ph; "
+            "if(dstring !== ''){ "
+                "current_id=ed.id; "
+                "var dict = JSON.parse(dstring); "
+                "var tblhtml = '<div id=""dt-' + current_id + '"">' + dictTable(dict) + '<input type=""button"" value=""Done ' + current_id + '"" onclick=""tableDoneHandler()"" style=""height:35px;width:100px;background-color:lightblue;""></div>'; ed.insertAdjacentHTML('afterend', tblhtml); current_ctrl=ed; } } }"
+
+    "var current_id, current_ctrl=null; "
+    "window.addEventListener('load', function() {setup_click('board_template'); setup_click('modem_startup');});";
+
 const char IOTWEBCONF_WORLDMAP_SCRIPT[] PROGMEM  =
     "var wmx=null,wmt;"
     "function wmf(p){"
@@ -91,6 +127,7 @@ const char IOTWEBCONF_WORLDMAP_SCRIPT[] PROGMEM  =
                 "sp=document.getElementById('wmsatpos');"
                 "sp.setAttribute('cx', wmp[0]);"
                 "sp.setAttribute('cy', wmp[1]);"
+
                 "mc=document.getElementById('modemconfig');"
                 "for(let r=0;r<6;r++){"
                     "mc.rows[r].cells[1].innerHTML=wmp[r+2]};"
@@ -100,16 +137,20 @@ const char IOTWEBCONF_WORLDMAP_SCRIPT[] PROGMEM  =
                 "else{"
                     "mc.rows[3].cells[0].innerHTML='Bitrate ';"
                     "mc.rows[4].cells[0].innerHTML='Frequency dev ';};"
+
                 "gs=document.getElementById('gsstatus');"
                 "for(let r=0;r<6;r++){"
                     "gs.rows[r].cells[1].innerHTML=wmp[r+8];};"
+
                 "si=document.getElementById('satinfo');"
                 "for(let r=0;r<6;r++){"
                     "si.rows[r].cells[1].innerHTML=wmp[r+14];};"
+
                 "lp=document.getElementById('lastpacket');"
                 "for(let r=0;r<4;r++){"
                     "lp.rows[r].cells[1].innerHTML=wmp[r+20];};"
                 "lp.rows[4].cells[0].innerHTML=wmp[24];}};"
+
         "wmx.open('GET','wm',true);wmx.send();"
         "wmt=setTimeout(wmf,5000);return false;}"
     "window.addEventListener('load', wmf);";
