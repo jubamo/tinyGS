@@ -454,15 +454,15 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[%s]  %s "   " RSSI: %.2f dBm   SNR: %.2f dB   Frequency error:%.1f Hz"),
+  Log::console(PSTR("[%s]  %s "   " RSSI: %.2f dBm   SNR: %.2f dB   F. error:%.1f Hz   Packet (%u bytes)"),
    moduleNameString, status.modeminfo.satellite, status.lastPacketInfo.rssi, 
    status.lastPacketInfo.snr, 
-   status.lastPacketInfo.frequencyerror);
+   status.lastPacketInfo.frequencyerror, respLen);
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
     // read optional data
-    Log::console(PSTR("Packet (%u bytes):"), respLen);
+   // Log::console(PSTR("Packet (%u bytes):"), respLen);
     uint16_t buffSize = respLen * 2 + 1;
     if (buffSize > 255)
       buffSize = 255;
