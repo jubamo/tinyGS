@@ -92,10 +92,11 @@ void Radio::init()
        moduleNameString="default SX1268";
   }
 
+  board.RX_EN=32; board.TX_EN=33;
   if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
   {
     radioHal->setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
+    Log::console(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
   }
 
   begin();
@@ -151,7 +152,7 @@ int16_t Radio::begin()
   radioHal->setDio0Action(setFlag);
   // start listening for LoRa packets
   //Log::console(PSTR("[%s] Starting to listen to %s"), moduleNameString, m.satellite);
-  Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
+  ///Log::console(PSTR("[%s] Starting to listen to %s @ %s mode @ %.4f MHz"), moduleNameString, m.satellite,m.modem_mode,(status.modeminfo.frequency * 1000000 + (status.modeminfo.freqOffset +  status.tle.freqDoppler)) / 1000000);
   CHECK_ERROR(radioHal->startReceive());
   status.modeminfo.currentRssi = radioHal->getRSSI(false,true);
 
@@ -184,7 +185,6 @@ if (status.modeminfo.tle[0] != 0)
   double       dMyLAT   = ConfigManager::getInstance().getLatitude();  // Latitude (Breitengrad): N -> +, S -> -
   double       dMyLON   = ConfigManager::getInstance().getLongitude(); ;  // Longitude (Längengrad): E -> +, W -> -
   double       dMyALT   = status.tle.tgsALT;      // Altitude ASL (m)
-  
   double       dfreqRX  = status.modeminfo.frequency;     // Nominal downlink frequency
   double       dfreqTX  = status.modeminfo.frequency;     // Nominal uplink frequency
   
@@ -454,10 +454,12 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[%s] RSSI:\t\t%f dBm\n[%s] SNR:\t\t%f dB\n[%s] Frequency error:\t%f Hz"),
-   moduleNameString, status.lastPacketInfo.rssi, 
-   moduleNameString, status.lastPacketInfo.snr, 
-   moduleNameString, status.lastPacketInfo.frequencyerror);
+  ///Log::console(PSTR("[%s] RSSI:\t\t%f dBm\n[%s] SNR:\t\t%f dB\n[%s] Frequency error:\t%f Hz"),
+   ///moduleNameString, status.lastPacketInfo.rssi, 
+   ///moduleNameString, status.lastPacketInfo.snr, 
+   ///moduleNameString, status.lastPacketInfo.frequencyerror);
+  Log::console(PSTR("[%s] RSSI: %.2f dBm   SNR: %.2f dB  Error: %.f Hz"),
+   status.modeminfo.satellite, status.lastPacketInfo.rssi, status.lastPacketInfo.snr, status.lastPacketInfo.frequencyerror); 
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
@@ -533,7 +535,7 @@ uint8_t Radio::listen()
           crcfield=msb*256+lsb;
         }
         Log::console(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
-        Log::log_packet(respFrame,respLen);
+        ///Log::log_packet(respFrame,respLen);
         packet_logged=true;
         if (fcs!=crcfield){
             Log::console(PSTR("Error_CRC"));
@@ -548,7 +550,7 @@ uint8_t Radio::listen()
       }
     }
 
-    if (!packet_logged){Log::log_packet(respFrame,respLen);}
+    ///if (!packet_logged){Log::log_packet(respFrame,respLen);}
 
     // if Filter enabled filter the received packet
     if (status.modeminfo.filter[0] != 0)
