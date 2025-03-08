@@ -95,7 +95,7 @@ void Radio::init()
   if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
   {
     radioHal->setRfSwitchPins(board.RX_EN, board.TX_EN);
-    Log::debug(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
+    Log::console(PSTR("setRfSwitchPins(RxEn->GPIO-%d, TxEn->GPIO-%d)"), board.RX_EN, board.TX_EN);
   }
 
   begin();
@@ -454,10 +454,10 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[%s] RSSI:\t\t%f dBm\n[%s] SNR:\t\t%f dB\n[%s] Frequency error:\t%f Hz"),
-   moduleNameString, status.lastPacketInfo.rssi, 
-   moduleNameString, status.lastPacketInfo.snr, 
-   moduleNameString, status.lastPacketInfo.frequencyerror);
+  Log::console(PSTR("[%s]  %s "   " RSSI: %.2f dBm   SNR: %.2f dB   Frequency error:%.1f Hz"),
+   moduleNameString, status.modeminfo.satellite, status.lastPacketInfo.rssi, 
+   status.lastPacketInfo.snr, 
+   status.lastPacketInfo.frequencyerror);
 
   if (state == RADIOLIB_ERR_NONE && respLen > 0)
   {
@@ -533,7 +533,7 @@ uint8_t Radio::listen()
           crcfield=msb*256+lsb;
         }
         Log::console(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
-        Log::log_packet(respFrame,respLen);
+        //Log::log_packet(respFrame,respLen);
         packet_logged=true;
         if (fcs!=crcfield){
             Log::console(PSTR("Error_CRC"));
@@ -548,7 +548,7 @@ uint8_t Radio::listen()
       }
     }
 
-    if (!packet_logged){Log::log_packet(respFrame,respLen);}
+    //if (!packet_logged){Log::log_packet(respFrame,respLen);}
 
     // if Filter enabled filter the received packet
     if (status.modeminfo.filter[0] != 0)
