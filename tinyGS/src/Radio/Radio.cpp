@@ -454,7 +454,7 @@ uint8_t Radio::listen()
   status.lastPacketInfo.frequencyerror = newPacketInfo.frequencyerror;
 
   // print RSSI (Received Signal Strength Indicator)
-  Log::console(PSTR("[%s]  %s "   " RSSI: %.2f dBm   SNR: %.2f dB   F. error:%.1f Hz   Packet (%u bytes)"),
+  Log::console(PSTR("[%s]  %s     RSSI: %.2f dBm   SNR: %.2f dB   F. error:%.1f Hz   Packet (%u bytes)"),
    moduleNameString, status.modeminfo.satellite, status.lastPacketInfo.rssi, 
    status.lastPacketInfo.snr, 
    status.lastPacketInfo.frequencyerror, respLen);
