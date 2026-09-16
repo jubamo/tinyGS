@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>
 
 #if TEST_API==1
-const char* API_URL = "https://api.test.tinygs.com/credentials?otp=";
+const char* API_URL = "https://api-test.tinygs.com/credentials?otp=";
 #else
 const char* API_URL = "https://api.tinygs.com/credentials?otp=";
 #endif
