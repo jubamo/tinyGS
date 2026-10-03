@@ -62,7 +62,7 @@ struct RxPacketMessage {
 };
 // Tamaño total: ~820 bytes x 10 = ~8.2KB (vs ~1KB x 10 con estructuras completas)
 
-#if MQTT_MAX_PACKET_SIZE != 1000  && !PLATFORMIO
+#if MQTT_MAX_PACKET_SIZE != 1024  && !PLATFORMIO
 #error "Using Arduino IDE is not recommended, please follow this guide https://github.com/G4lile0/tinyGS/wiki/Arduino-IDE or edit /PubSubClient/src/PubSubClient.h  and set #define MQTT_MAX_PACKET_SIZE 1000"
 #endif
 #ifdef SECURE_MQTT

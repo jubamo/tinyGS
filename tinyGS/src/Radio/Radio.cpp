@@ -28,6 +28,7 @@
 //@estbhan
 //04/08/2023
 #include "../BitCode/BitCode.h"
+#include "../BitCode/ax100_mode5.h"
 
 #define CHECK_ERROR(errCode) if (errCode != RADIOLIB_ERR_NONE) { Log::console(PSTR("Radio failed, code %d\n Check that the configuration is valid for your board"), errCode);status.radio_error=errCode; return errCode; }
 
@@ -47,6 +48,34 @@ Radio::Radio()
 #endif
 {
 }
+
+// 32-bit Castagnoli-CRC - CRC-32C    OE6ISP *****************************************************
+//
+// Name : "CRC-32C"
+// Width : 32
+// Poly : 1EDC6F41h
+// Init : FFFFFFFFh
+// RefIn : True
+// RefOut : True
+// XorOut : FFFFFFFFh
+
+uint32_t crc32c(const uint8_t *data, size_t len) {
+    uint32_t crc = 0xFFFFFFFF;
+
+    while (len--) {
+        crc ^= *data++;
+        for (int i = 0; i < 8; i++) {
+            if (crc & 1)
+                crc = (crc >> 1) ^ 0x82F63B78;  // reflected Castagnoli-Polynom
+            else
+                crc >>= 1;
+        }
+    }
+
+    return ~crc;
+}
+// OE6ISP ***************************************************************************************
+
 
 void Radio::init()
 {
@@ -92,6 +121,10 @@ void Radio::init()
       radioHal = new RadioHal<LR1121>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
       moduleNameString="LR1121";
       break;
+    case RADIO_LR2021:
+      radioHal = new RadioHal<LR2021>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
+      moduleNameString="LR2021";
+      break;
 
      default:
       radioHal = new RadioHal<SX1268>(new Module(board.L_NSS, board.L_DI01, board.L_RST, board.L_BUSSY, spi, SPISettings(2000000, MSBFIRST, SPI_MODE0)));
@@ -99,7 +132,6 @@ void Radio::init()
   }
 
   
-
   begin();
 
 if (board.L_radio == RADIO_LR1121)
@@ -149,6 +181,9 @@ else if (board.RX_EN != UNUSED && board.TX_EN != UNUSED)
 
 int16_t Radio::begin()
 {
+  // pinMode (25, OUTPUT); // OE6ISP relay control pin
+  // digitalWrite(25,0); // OE6ISP
+
   status.radio_ready = false;
   board_t board;
   if (!ConfigManager::getInstance().getBoardConfig(board))
@@ -449,12 +484,18 @@ int16_t Radio::sendTx(uint8_t *data, size_t length)
   }
   disableInterrupt();
 
+ // digitalWrite(25,1); // OE6ISP relay to tx and wait
+ // sleep(0.3); // OE6ISP
+
   // send data
   int16_t state = 0;
 
   state = radioHal->transmit(data, length);
   radioHal->setPacketReceivedAction(setFlag); // TODO: Check, is this needed?? include it inside startRX ??
   startRx();
+
+  // digitalWrite(25,0); // OE6ISP relays back to rx
+  // sleep(0.1); // OE6ISP
 
   return state;
 }
@@ -471,6 +512,7 @@ int16_t Radio::moduleSleep()
 
 uint8_t Radio::listen()
 {
+
   // check if the flag is set (received interruption)
   if (!received)
     return 1;
@@ -478,6 +520,13 @@ uint8_t Radio::listen()
   // disable the interrupt service routine while
   // processing the data
   disableInterrupt();
+
+
+  // oe6isp crc32c
+  uint16_t fcs;
+  uint16_t crcfield=0;
+  uint32_t fcs32;
+  uint32_t crcfield32=0;
 
   // reset flag
   received = false;
@@ -578,6 +627,7 @@ uint8_t Radio::listen()
          ) 
         {
         Log::consoleAsync(PSTR("Processing AX.25 frame..."));
+
         // Add Synch Frame Word to the received data 
         for (int i=0;i<sizeof(status.modeminfo.fsw);i++){
           if (status.modeminfo.fsw[i]!=0){bytes_sincro++;}
@@ -594,6 +644,9 @@ uint8_t Radio::listen()
         uint8_t *ax25bin;
         size_t sizeAx25bin=0;
         ax25bin=new uint8_t[buffSize_pck];
+        
+        Log::log_packet(respFrame_fsk,buffSize_pck);  //oe6isp
+       
         frame_error=BitCode::nrz2ax25(respFrame_fsk,buffSize_pck,ax25bin,&sizeAx25bin,status.modeminfo.framing);
         delete[] respFrame_fsk; // Clean up respFrame_fsk
         if (frame_error!=0){
@@ -626,34 +679,82 @@ uint8_t Radio::listen()
         delete[] respFrame; // Clean up original respFrame before reassignment
         respFrame=salida;
       }
+
+      if (status.modeminfo.framing==10){ //framing=10 -> AX.100 Mode 5 (Golay + CCSDS-RS) new mode thanks to the work of OE6ISP
+        Log::consoleAsync(PSTR("Processing AX.100 Mode 5 frame..."));
+        uint8_t *ax100_out = new uint8_t[AX100_M5_MAX_OUT];
+        int ax100_len = 0;
+        ax100_mode5_info_t ax100_info;
+        int ax100_result = ax100_mode5_decode(respFrame, (int)respLen,
+                                              ax100_out, &ax100_len, &ax100_info);
+        if (ax100_result == 0 && ax100_len > 0) {  // OE6ISP
+          Log::consoleAsync(PSTR("AX.100 Mode5 OK: Golay_errs=%d RS_errs=%d frame_len=%d payload=%d"),
+            ax100_info.golay_errors, ax100_info.rs_errors,
+            ax100_info.frame_len, ax100_len);
+          delete[] respFrame;
+          respFrame = ax100_out;
+          respLen   = (size_t)ax100_len;
+        } else {
+          Log::consoleAsync(PSTR("AX.100 Mode5 decode failed (err=%d)"), ax100_result);
+		  // mark as false OE6ISP *************************************************************************	
+		  status.lastPacketInfo.crc_error = true; //OE6ISP
+          delete[] ax100_out;
+          frame_error = 1;
+        }
+      }
+
       board_t board;
       ConfigManager::getInstance().getBoardConfig(board);
       // check CRC by software if pckt is <65 bytes, of if it's bigger only for modules SX126x 
-      if (frame_error==0 && status.modeminfo.crc_by_sw && ( board.L_radio==RADIO_SX1268 || board.L_radio==RADIO_SX1262 || respLen < 65 )){
-        size_t newsize=respLen-status.modeminfo.crc_nbytes;
+      if (frame_error==0 && (status.modeminfo.crc_by_sw || status.modeminfo.framing==10 )
+        && ( board.L_radio==RADIO_SX1268 || board.L_radio==RADIO_SX1262 || respLen < 65 ))
+        // when ax.100 mode5, always check crc OE6ISP  ********************************************************
+		{
+        size_t newsize=respLen - status.modeminfo.crc_nbytes;
         RadioLibCRCInstance.size = status.modeminfo.crc_nbytes*8;
         RadioLibCRCInstance.poly = status.modeminfo.crc_poly;
         RadioLibCRCInstance.init = status.modeminfo.crc_init;
         RadioLibCRCInstance.out = status.modeminfo.crc_finalxor;
         RadioLibCRCInstance.refIn = status.modeminfo.crc_refIn;
         RadioLibCRCInstance.refOut = status.modeminfo.crc_refOut;
-        uint16_t fcs=RadioLibCRCInstance.checksum(respFrame,newsize);
-        //If the input is reflected (refIn=true) for the CRC calculation, the CRC value
-        //is computed from last two bytes of respFrame reflecting in first place the bytes. 
-        //If the input is not reflected (refIn=false) then the CRC calculation is computed
-        //with the two last bytes directly taken from respFrame.
-        uint8_t msb,lsb,msbinv,lsbinv;
-        msb=respFrame[respLen-2];
-        lsb=respFrame[respLen-1];
-        BitCode::invierte_bits_de_un_byte(msb,&msbinv);
-        BitCode::invierte_bits_de_un_byte(lsb,&lsbinv);
-        uint16_t crcfield=0;
-        if (status.modeminfo.crc_refIn){
-          crcfield=msbinv*256+lsbinv;
-        }else{
-          crcfield=msb*256+lsb;
+
+        // OE6ISP **************************************************
+        if (status.modeminfo.framing==10){
+          // CRC-32C (Castagnoli) OE6ISP
+		  // extract crc from received frame
+          crcfield32 =
+            ((uint32_t)respFrame[respLen-4] << 24) |
+            ((uint32_t)respFrame[respLen-3] << 16) |
+            ((uint32_t)respFrame[respLen-2] <<  8) |
+            ((uint32_t)respFrame[respLen-1]);
+          
+          //Log::consoleAsync(PSTR("Received CRC32C: %08lX"),crcfield32);
+
+          fcs32 = crc32c(respFrame,respLen-4);
+          
+          //Log::consoleAsync(PSTR("Calculated CRC32C: %08lX"),fcs32);
+        }  // OE6ISP *********************************************************************************
+        else
+        {
+          // other CRCs, 16 bit
+          fcs=RadioLibCRCInstance.checksum(respFrame,newsize);
+          //If the input is reflected (refIn=true) for the CRC calculation, the CRC value
+          //is computed from last two bytes of respFrame reflecting in first place the bytes. 
+          //If the input is not reflected (refIn=false) then the CRC calculation is computed
+          //with the two last bytes directly taken from respFrame.
+          uint8_t msb,lsb,msbinv,lsbinv;
+          msb=respFrame[respLen-2];
+          lsb=respFrame[respLen-1];
+          BitCode::invierte_bits_de_un_byte(msb,&msbinv);
+          BitCode::invierte_bits_de_un_byte(lsb,&lsbinv);
+          crcfield=0;
+          if (status.modeminfo.crc_refIn){
+            crcfield=msbinv*256+lsbinv;
+          }else{
+            crcfield=msb*256+lsb;
+          }
+          Log::consoleAsync(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
         }
-        Log::consoleAsync(PSTR("Received CRC: %X Calculated CRC: %X"),crcfield,fcs);
         if ((  status.modeminfo.framing==1  //framing=1 -> NRZS -> AX.25 Frame
             || status.modeminfo.framing==3  //framing=3 -> Scrambled(x17x12) -> NRZS -> AX.25  
             ) && respLen>=16
@@ -665,16 +766,35 @@ uint8_t Radio::listen()
              }
            }
         packet_logged=true;
-        if (fcs!=crcfield){
-            status.lastPacketInfo.crc_error = true;
-            Log::consoleAsync(PSTR("Error_CRC"));
-            const char cad[] = "Error_CRC";
-            respLen=9;
-            for (int i=0;i<9;i++){
-              respFrame[i]=(uint8_t)cad[i];
+        
+        // OE6ISP **************************************************
+		if (status.modeminfo.framing==10)         {
+            if (fcs32 != crcfield32){
+              status.lastPacketInfo.crc_error = true;
+              Log::consoleAsync(PSTR("Error_CRC"));
+              const char cad[] = "Error_CRC";
+              respLen=9;
+              for (int i=0;i<9;i++){
+                respFrame[i]=(uint8_t)cad[i];
+              }
             }
-          }          
-        }else{Log::consoleAsync(PSTR("CRC Check not performed"));}
+          } // OE6ISP **********************************************************************************
+          else
+          {
+          if (fcs!=crcfield){
+              status.lastPacketInfo.crc_error = true;
+              Log::consoleAsync(PSTR("Error_CRC"));
+              const char cad[] = "Error_CRC";
+              respLen=9;
+              for (int i=0;i<9;i++){
+                respFrame[i]=(uint8_t)cad[i];
+              }  
+            } 
+          }     
+        }
+        else
+        {
+          Log::consoleAsync(PSTR("CRC Check not performed"));}
       }
     }
 
@@ -707,7 +827,6 @@ uint8_t Radio::listen()
       }
     }
 
-//    status.lastPacketInfo.crc_error = false;
     MQTT_Client::getInstance().queueRx(base64::encode(respFrame, respLen), noisyInterrupt, base64::encode(respFrame_raw, respLenRaw));
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH || status.lastPacketInfo.crc_error )
