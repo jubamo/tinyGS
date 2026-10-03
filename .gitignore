@@ -4,6 +4,7 @@
 
 scripts/
 tinyGS/tinyGS.ino.cpp
+tinyGS/idf_component.yml
 .aider*
 .env
 .vscode/*
