@@ -231,7 +231,8 @@ public:
     strncpy(getThingNameParameter()->valueBuffer, buffer, IOTWEBCONF_WORD_LEN);
     this->saveConfig();
   }
-  
+  bool setWebPassword(const char *pass);
+
   void setBoardTemplate (const char* boardTemplateStr)
   {
     strcpy(boardTemplate, boardTemplateStr);
