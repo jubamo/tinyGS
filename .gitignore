@@ -8,6 +8,7 @@ tinyGS/idf_component.yml
 .aider*
 .env
 .vscode/*
+.agents/
 context_portal
 memvidagentmemory.instructions.md
 
