@@ -15,6 +15,6 @@
 ## 3. Verificación de integración
 
 - [x] 3.1 Compilar los entornos principales (`pio run -e ESP32 -e ESP32-S3 -e ESP32-C3`) y verificar que todos construyen sin errores.
-- [ ] 3.2 Con la placa conectada a MQTT, publicar `{"pass":"clave12345"}` en `tinygs/<user>/<station>/cmnd/set_password` y verificar que la placa se reinicia y reenvía `welcome`; comprobar que la nueva contraseña abre el panel web.
-- [ ] 3.3 Publicar `{"pass":"corta"}` y un payload mal formado, y verificar que se recibe un ack no cero en `stat/set_password` y que la placa no se reinicia y conserva la contraseña anterior.
-- [ ] 3.4 Publicar `set_password` en `tinygs/global/set_password` y verificar que ninguna estación cambia la contraseña.
+- [x] 3.2 Con la placa conectada a MQTT, publicar `{"pass":"clave12345"}` en `tinygs/<user>/<station>/cmnd/set_password` y verificar que la placa se reinicia y reenvía `welcome`; comprobar que la nueva contraseña abre el panel web.
+- [x] 3.3 Publicar `{"pass":"corta"}` y un payload mal formado, y verificar que se recibe un ack no cero en `stat/set_password` y que la placa no se reinicia y conserva la contraseña anterior.
+- [x] 3.4 Publicar `set_password` en `tinygs/global/set_password` y verificar que ninguna estación cambia la contraseña.
