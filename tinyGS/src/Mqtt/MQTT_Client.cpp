@@ -944,6 +944,17 @@ void MQTT_Client::manageMQTTData(char *topic, uint8_t *payload, unsigned int len
     return; // no ack
   }
 
+  if (!strcmp(command, commandSetPassword))
+  {
+    uint16_t passResult = manageSetPassword((char *)payload, length);
+    if (passResult == 0)
+    {
+      Log::console(PSTR("Web console password updated, restarting..."));
+      ESP.restart(); // never returns
+    }
+    result = passResult; // fall through to publish the error ack
+  }
+
 
   if (!strcmp(command, commandGetAdvParameters))
   {
@@ -1044,6 +1055,31 @@ void MQTT_Client::manageSetName(char *payload, size_t payload_len)
     Log::debug(PSTR("Invalid format"));
   }
     
+}
+
+uint16_t MQTT_Client::manageSetPassword(char *payload, size_t payload_len)
+{
+  StaticJsonDocument<96> doc;
+  DeserializationError error = deserializeJson(doc, payload, payload_len);
+
+  if (error || !doc.is<JsonObject>() || !doc.containsKey("pass") || !doc["pass"].is<const char*>())
+  {
+    Log::debug(PSTR("set_password: invalid payload"));
+    return 1;
+  }
+
+  const char* pass = doc["pass"];
+  size_t len = strlen(pass);
+  if (len < 8 || len > 32)
+  {
+    Log::debug(PSTR("set_password: invalid length"));
+    return 2;
+  }
+
+  if (!ConfigManager::getInstance().setWebPassword(pass))
+    return 1;
+
+  return 0;
 }
 
 

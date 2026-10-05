@@ -676,6 +676,21 @@ void ConfigManager::resetAllConfig()
   saveConfig();
 }
 
+bool ConfigManager::setWebPassword(const char *pass)
+{
+  size_t len = pass ? strlen(pass) : 0;
+  if (len < 8 || len > 32)
+    return false;
+
+  iotwebconf2::Parameter *param = getApPasswordParameter();
+  strncpy(param->valueBuffer, pass, param->getLength());
+  param->valueBuffer[param->getLength() - 1] = '\0';
+
+  this->saveConfig();
+  Log::console(PSTR("Web console password updated"));
+  return true;
+}
+
 boolean ConfigManager::init()
 {
   boolean validConfig = IotWebConf2::init();
