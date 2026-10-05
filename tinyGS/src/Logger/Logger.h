@@ -26,7 +26,9 @@
 #include <freertos/task.h>
 
 #define MAX_LOG_SIZE 4000
+#ifndef LOG_LEVEL
 #define LOG_LEVEL    LOG_LEVEL_NONE
+#endif
 #define MAX_ASYNC_LOG_SIZE 320
 #define LOG_QUEUE_SIZE 30
 
